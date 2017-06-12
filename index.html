@@ -294,7 +294,7 @@ d3.json("https://api.github.com/users/alexmacy/gists?per_page=999", function(err
             .attr("href", p.link)
             .attr("target", "_blank")
           .append("img")
-            .attr("src", p.file["thumbnail.png"] ? p.files["thumbnail.png"].raw_url : "")
+            .attr("src", p.files["thumbnail.png"] ? p.files["thumbnail.png"].raw_url : "")
       })
 })
 </script>
