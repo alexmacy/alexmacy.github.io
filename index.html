@@ -260,7 +260,6 @@ img {
 </body>
 <script>
 d3.json("https://api.github.com/users/alexmacy/gists?per_page=999", function(error, list) {
-
   // most of the exclusions are because they are similar to others that are displayed through gh-pages.
   const omissions = [
     'd2f9486aa62411e7844a47544856e2a6',
@@ -272,29 +271,31 @@ d3.json("https://api.github.com/users/alexmacy/gists?per_page=999", function(err
     'eb284831aff6f9d0119b',
     'c0302e4d78cebc193840',
   ]
-
   // only load gists that aren't already displayed above
   list = list.filter(function(d) {
     return d3.select("#gist_" + d.id).node() === null && !omissions.includes(d.id);
   })
-
   var gists = d3.select(".gists .container").selectAll(".gist")
       .data(list)
     .enter().append("div")
       .attr("class", "gist")
       .attr("id", d => d.description)
       .each(function(p, j) {
+        // this one requires the camera, so redirect to a secure URL
+        if (p.id === "357584793d79f5b7abcf502a60aa0415") {
+          p.link = "https://bl.ocks.org/alexmacy/raw/357584793d79f5b7abcf502a60aa0415/"  
+        } else {
+          p.link = "//bl.ocks.org/alexmacy/" + p.id
+        }
+          
         d3.select(this).append("h3")
             .html(p.description)
         d3.select(this).append("a")
-            .attr("href", "//bl.ocks.org/alexmacy/" + p.id)
+            .attr("href", p.link)
             .attr("target", "_blank")
           .append("img")
-            .attr("src", p.files["thumbnail.png"].raw_url)
+            .attr("src", p.file["thumbnail.png"] ? p.files["thumbnail.png"].raw_url : "")
       })
-
 })
 </script>
-
-
 </html>
