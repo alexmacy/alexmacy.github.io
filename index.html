@@ -1,36 +1,15 @@
 <!DOCTYPE html>
 <html>
-<style>
-body {
-  max-width: 960px;
-  margin: auto;
-}
-.gists {
-  margin: 30px;
-}
-.container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-.gist {
-  margin: 20px;
-  width: 230px;
-}
-img {
-  border: 1px solid #cccccc;
-  margin: auto;
-}
-.gist h3 {
-  height: 3em;
-}
-.break {
-  flex-basis: 100%;
-}
-</style>
+<link rel="stylesheet" href="font-awesome.min.css">
+<link rel="stylesheet" href="style.css">
 <script src="//d3js.org/d3.v4.min.js"></script>
 <body>
-<h1>Selected Projects:</h1>
+<p style="text-align: right;">
+  <a href="#" class="fa fa-twitter"></a>
+  <a href="#" class="fa fa-linkedin"></a>
+  <a href="#" class="fa fa-github"></a>
+</p>
+<p>This is a very minimal page for displaying some of my side-projects and experimentations in one place.</p>
 <div>
   <h2>3D Lissajous Curves:</h2> 
   <p>Experimenting with plotting Lissajous curves in three dimensions using three.js.
@@ -51,7 +30,7 @@ img {
       </a>
     </div>
 
-    <div class="break" style="margin-left: 20px;">
+    <div class="break">
       <h3>See Also:</h3>
     </div>
 
@@ -153,7 +132,7 @@ img {
   <p>An experiment in simulating a 3D perspective based on an optical illusion, but without using any 3D tools. (<a href="https://github.com/alexmacy/Perspective-tests" target="_blank">repository</a>)</p>
   <div class="container">
 
-    <div class="break" style="text-align: center">
+    <div class="break centered">
       (These are controlled by using Webgazer's face tracking, which requires a camera and allowing the browser access to the video feed.)
     </div>
 
@@ -171,7 +150,7 @@ img {
       </a>
     </div>
 
-    <div class="break" style="text-align: center">
+    <div class="break centered">
       (This is another version of the hallway example, but is controlled by the mouse rather than face tracking.)
     </div>
 
@@ -213,7 +192,7 @@ img {
   <p>I am a big fan of Crossfilter.js and have used it extensively and the Crossfilter demo was one of the first examples I used for learning how to build dashboards. Version 4 of d3.js had some major changes that effect how it interacts with Crossfilter, so I decided to make an updated version of the demo to gain a better understanding of these changes. I also made a version that includes a map... (<a href="https://github.com/alexmacy/crossfilter" target="_blank">repository</a>)</p>
   <div class="container">
    
-    <div class="break" style="text-align: center">
+    <div class="break centered">
       (These may be a bit slow to load because the data file is rather large.)
     </div>
 
