@@ -1,0 +1,102 @@
+html {
+  font-family:sans-serif;
+  -webkit-text-size-adjust:100%;
+  -ms-text-size-adjust:100%
+}
+
+body {
+  max-width: 960px;
+  background-color: #fff;
+  padding:50px;
+  color:#595959;
+  font-weight:400;
+}
+
+h1, h2, h3 {
+  color:#222;
+  margin:0 0 20px;
+}
+
+p, ul {
+  margin:0 0 20px;
+}
+
+h1, h2, h3 {
+  line-height:1.1;
+}
+
+h1 {
+  font-size:28px;
+  font-weight: 500;
+}
+
+h2 {
+  color:#393939;
+  font-weight: 500;
+}
+
+h3 {
+  color:#494949;
+  font-weight: 500;
+}
+
+a {
+  color:#39c;
+  text-decoration:none;
+}
+
+a:hover {
+  color:#069;
+}
+
+.gists {
+  margin: 30px;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.gist {
+  margin: 20px;
+  width: 230px;
+}
+
+.gist h3 {
+  height: 3em;
+}
+
+img {
+  border: 1px solid #cccccc;
+  margin: auto;
+}
+
+.break {
+  flex-basis: 100%;
+}
+
+.centered {
+  text-align: center;
+}
+.fa {
+  padding: 5px;
+  text-align: center;
+  text-decoration: none;
+  margin: 5px 2px;
+  border-radius: 50%;
+  color: white;
+}
+
+.fa-twitter {
+  background: #55ACEE;
+}
+
+.fa-linkedin {
+  background: #007bb5;
+}
+
+.fa-github {
+  background: #4078c0;
+}
