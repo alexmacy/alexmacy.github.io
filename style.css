@@ -117,7 +117,7 @@ img {
 
 polygon { 
   fill-opacity: .5; 
-  stroke: black; 
+  stroke: #999999; 
 }
 
 circle {
