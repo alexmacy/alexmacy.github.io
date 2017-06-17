@@ -1,240 +1,242 @@
 <!DOCTYPE html>
 <html>
-<title>Alex Macy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="style.css">
-<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="d3.v4.min.js"></script>
+<script src="d3-scale-chromatic.v1.min.js"></script>
 <body>
-<p style="text-align: right;">
-  <a href="//www.twitter.com/alexmacy" class="fa fa-twitter" target="_blank"></a>
-  <a href="//www.linkedin.com/in/alex-macy/" class="fa fa-linkedin" target="_blank"></a>
-  <a href="//www.github.com/alexmacy" class="fa fa-github" target="_blank"></a>
-</p>
-<p>This is a very minimal page for displaying some of my side-projects and experimentations in one place.</p>
-<div>
-  <h2>3D Lissajous Curves:</h2> 
-  <p>Experimenting with plotting Lissajous curves in three dimensions using three.js.
-  (<a href="https://github.com/alexmacy/3D-Lissajous-Curves" target="_blank">repository</a>)</p>
-  <div class="container">
+<svg class="background"></svg>
+<div class="content">
+  <p class="links">
+    <a href="//www.twitter.com/alexmacy" class="fa fa-twitter" target="_blank"></a>
+    <a href="//www.linkedin.com/in/alex-macy/" class="fa fa-linkedin" target="_blank"></a>
+    <a href="//www.github.com/alexmacy" class="fa fa-github" target="_blank"></a>
+  </p>
+  <div>
+    <h2>3D Lissajous Curves:</h2> 
+    <p>Experimenting with plotting Lissajous curves in three dimensions using three.js.
+    (<a href="https://github.com/alexmacy/3D-Lissajous-Curves" target="_blank">repository</a>)</p>
+    <div class="container">
 
-    <div class="gist">
-      <h3>3D Lissajous dots</h3>
-      <a href="https://alexmacy.github.io/3D-Lissajous-Curves/" target="_blank">
-        <img src="https://raw.githubusercontent.com/alexmacy/3D-Lissajous-Curves/master/dots.png">
-      </a>
-    </div>
+      <div class="gist">
+        <h3>3D Lissajous dots</h3>
+        <a href="https://alexmacy.github.io/3D-Lissajous-Curves/" target="_blank">
+          <img src="https://raw.githubusercontent.com/alexmacy/3D-Lissajous-Curves/master/dots.png">
+        </a>
+      </div>
 
-    <div class="gist">
-      <h3>3D Lissajous mesh</h3>
-      <a href="https://alexmacy.github.io/3D-Lissajous-Curves/mesh.html" target="_blank">
-        <img src="https://raw.githubusercontent.com/alexmacy/3D-Lissajous-Curves/master/mesh.png">
-      </a>
-    </div>
+      <div class="gist">
+        <h3>3D Lissajous mesh</h3>
+        <a href="https://alexmacy.github.io/3D-Lissajous-Curves/mesh.html" target="_blank">
+          <img src="https://raw.githubusercontent.com/alexmacy/3D-Lissajous-Curves/master/mesh.png">
+        </a>
+      </div>
 
-    <div class="break">
-      <h3>See Also:</h3>
-    </div>
+      <div class="break">
+        <h3>See Also:</h3>
+      </div>
 
-    <div class="gist" id="gist_bdb27755a63b1160f4ac71e428065379">
-      <h3>Lissajous Curve</h3>
-      <a href="//bl.ocks.org/alexmacy/bdb27755a63b1160f4ac71e428065379" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/bdb27755a63b1160f4ac71e428065379/raw/93d5cba95eb5ec4d31e11025c4a53bfc56c7832a/thumbnail.png">
-      </a>
-    </div>
+      <div class="gist" id="gist_bdb27755a63b1160f4ac71e428065379">
+        <h3>Lissajous Curve</h3>
+        <a href="//bl.ocks.org/alexmacy/bdb27755a63b1160f4ac71e428065379" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/bdb27755a63b1160f4ac71e428065379/raw/93d5cba95eb5ec4d31e11025c4a53bfc56c7832a/thumbnail.png">
+        </a>
+      </div>
 
-    <div class="gist" id="gist_c287489c4925719821a108006a9362d5">
-      <h3>Compound Radial Waves v3 [WARNING: LOUD!]</h3>
-      <a href="//bl.ocks.org/alexmacy/c287489c4925719821a108006a9362d5" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/c287489c4925719821a108006a9362d5/raw/4822dbc12f33d30e1d16739960811e59ec022ab6/thumbnail.png">
-      </a>
+      <div class="gist" id="gist_c287489c4925719821a108006a9362d5">
+        <h3>Compound Radial Waves v3 [WARNING: LOUD!]</h3>
+        <a href="//bl.ocks.org/alexmacy/c287489c4925719821a108006a9362d5" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/c287489c4925719821a108006a9362d5/raw/4822dbc12f33d30e1d16739960811e59ec022ab6/thumbnail.png">
+        </a>
+      </div>
+      
+      <div class="gist" id="gist_29966cadaab0053d3ed5c8c85a5e4582">
+        <h3>Compound Radial Waves v2</h3>
+        <a href="//bl.ocks.org/alexmacy/29966cadaab0053d3ed5c8c85a5e4582" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/29966cadaab0053d3ed5c8c85a5e4582/raw/394919ec503459b57e90622cf6529e1fa9b1dcbb/thumbnail.png">
+        </a>
+      </div>
+      
+      <div class="gist" id="gist_c5d36ac67eee2ca7b69824f74fb501d5">
+        <h3>Compound Radial Waves</h3>
+        <a href="//bl.ocks.org/alexmacy/c5d36ac67eee2ca7b69824f74fb501d5" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/c5d36ac67eee2ca7b69824f74fb501d5/raw/585475fac2f7a79f35417a162ccb2fcf97019bd9/thumbnail.png">
+        </a>
+      </div>
+      
+      <div class="gist" id="gist_03547a3e7498dbe3690b7eb35578022b">
+        <h3>Compound Waves</h3>
+        <a href="//bl.ocks.org/alexmacy/03547a3e7498dbe3690b7eb35578022b" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/03547a3e7498dbe3690b7eb35578022b/raw/c605b93a7147a50fa18730e7dfd8c0a80f075343/thumbnail.png">
+        </a>
+      </div>
+
     </div>
-    
-    <div class="gist" id="gist_29966cadaab0053d3ed5c8c85a5e4582">
-      <h3>Compound Radial Waves v2</h3>
-      <a href="//bl.ocks.org/alexmacy/29966cadaab0053d3ed5c8c85a5e4582" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/29966cadaab0053d3ed5c8c85a5e4582/raw/394919ec503459b57e90622cf6529e1fa9b1dcbb/thumbnail.png">
-      </a>
+  </div>
+
+  <div>
+    <h2>Web Audio Experiments:</h2>
+    <p>A series of experiments in using the Web Audio API for Digital Signal Processing. This is an ongoing series, usually featuring the exploration of different methods of manipulating or synthesizing sound waves at the sample level, often working directly with the audio buffer. (<a href="https://github.com/alexmacy/Web-Audio-Experiments" target="_blank">repository</a>)</p>
+    <div class="container">
+
+      <div class="gist" id="gist_41bf2c3727c59a3366528807c2c708b2">
+        <h3>Web Audio Theremin &amp; Oscilloscope</h3>
+        <a href="//bl.ocks.org/alexmacy/41bf2c3727c59a3366528807c2c708b2" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/41bf2c3727c59a3366528807c2c708b2/raw/e17694d6d2ed23b648832e81d128cbaec9dda591/thumbnail.png">
+        </a>
+        <p>A sort of theremin that is controlled by tracking the mouse.</p>
+      </div>
+
+      <div class="gist" id="gist_d31b0819f11fc881add341ace6483bd3">
+        <h3>Web Audio Sampler with Effects</h3>
+        <a href="//bl.ocks.org/alexmacy/d31b0819f11fc881add341ace6483bd3" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/d31b0819f11fc881add341ace6483bd3/raw/2718f53d50bf4466300ac9f27762bee8ffc9acec/thumbnail.png">
+        </a>
+        <p>A Sampler with triggers that can be manually plotted and controlled by the keyboard. It also has Fade effects as well as Delay effects that adjust to match the beat. It comes with a small set of samples that can be used, but samples can also be loaded into the sampler client-side.</p>
+      </div>
+
+      <div class="gist" id="gist_cbe531e57c59071c4d702bcf79c43436">
+        <h3>Audio Synth via d3-ease</h3>
+        <a href="//bl.ocks.org/alexmacy/cbe531e57c59071c4d702bcf79c43436" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/cbe531e57c59071c4d702bcf79c43436/raw/f63f513adad81d713f70441be070e5c72c282314/thumbnail.png">
+        </a>
+        <p>A synthesizer that generates the waveshape by combining multiple waves that are generated by using d3's easing functions.</p>
+      </div>
+
+      <div class="gist" id="gist_5f5d6f75a44f27f19a2eebf7771ed73e">
+        <h3>Phase Shifting</h3>
+        <a href="//bl.ocks.org/alexmacy/5f5d6f75a44f27f19a2eebf7771ed73e" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/5f5d6f75a44f27f19a2eebf7771ed73e/raw/b6fc56d69eb05199217d462951564f9f2e997c12/thumbnail.png">
+        </a>
+        <p>Reproduction of Steve Reich's "It's Gonna Rain" and "Come Out"</p>
+      </div>
+
+      <div class="gist" id="gist_f25c39867546f8c72af13cb7e5bc654a">
+        <h3>I Am Sitting in a Room - Alvin Lucier</h3>
+        <a href="//bl.ocks.org/alexmacy/f25c39867546f8c72af13cb7e5bc654a" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/f25c39867546f8c72af13cb7e5bc654a/raw/92c02ba337c641bd07b6440474c12ff051791be2/thumbnail.png">
+        </a>
+        <p>Reproduction of Alvin Lucier's "I Am Sitting In A Room"</p>
+      </div>
+
+      <div class="gist" id="gist_5799c3e1f35f6aa0fbf5d723b7d6d35e">
+        <h3>Wave Phasing</h3>
+        <a href="//bl.ocks.org/alexmacy/5799c3e1f35f6aa0fbf5d723b7d6d35e" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/5799c3e1f35f6aa0fbf5d723b7d6d35e/raw/86c0a0cd40279c45396b06fb2c461b7a3cc4fc37/thumbnail.png">
+        </a>
+      </div>
+
     </div>
-    
-    <div class="gist" id="gist_c5d36ac67eee2ca7b69824f74fb501d5">
-      <h3>Compound Radial Waves</h3>
-      <a href="//bl.ocks.org/alexmacy/c5d36ac67eee2ca7b69824f74fb501d5" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/c5d36ac67eee2ca7b69824f74fb501d5/raw/585475fac2f7a79f35417a162ccb2fcf97019bd9/thumbnail.png">
-      </a>
+  </div>
+
+  <div>
+    <h2>Perspective Tests:</h2>
+    <p>An experiment in simulating a 3D perspective based on an optical illusion, but without using any 3D tools. (<a href="https://github.com/alexmacy/Perspective-tests" target="_blank">repository</a>)</p>
+    <div class="container">
+
+      <div class="break centered">
+        (These are controlled by using Webgazer's face tracking, which requires a camera and allowing the browser access to the video feed.)
+      </div>
+
+      <div class="gist">
+        <h3>Hallway</h3>
+        <a href="https://alexmacy.github.io/Perspective-tests" target="_blank">
+          <img src="https://alexmacy.github.io/Perspective-tests/thumbnail.png">
+        </a>
+      </div>
+
+      <div class="gist">
+        <h3>Teapot</h3>
+        <a href="https://alexmacy.github.io/Perspective-tests/teapot.html" target="_blank">
+          <img src="https://alexmacy.github.io/Perspective-tests/teapot-thumb.png">
+        </a>
+      </div>
+
+      <div class="break centered">
+        (This is another version of the hallway example, but is controlled by the mouse rather than face tracking.)
+      </div>
+
+      <div class="gist" id="gist_9309e227a7b756b5667f2933ba0e1e39">
+        <h3>Forced Perspective</h3>
+        <a href="//bl.ocks.org/alexmacy/9309e227a7b756b5667f2933ba0e1e39" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/9309e227a7b756b5667f2933ba0e1e39/raw/aebc539fd8f0b2000ec19d737562b4ae309939ac/thumbnail.png">
+        </a>
+      </div>
+
     </div>
-    
-    <div class="gist" id="gist_03547a3e7498dbe3690b7eb35578022b">
-      <h3>Compound Waves</h3>
-      <a href="//bl.ocks.org/alexmacy/03547a3e7498dbe3690b7eb35578022b" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/03547a3e7498dbe3690b7eb35578022b/raw/c605b93a7147a50fa18730e7dfd8c0a80f075343/thumbnail.png">
-      </a>
-    </div>
+  </div>
+
+  <div>
+    <h2>Sound of the Stock Market:</h2>
+    <p>A cost basis calculator and comparison tool, displaying the stock's weekly value on a Monday. Brushing the range chart adjusts the line chart so that the first instance of the stock is set to $1, showing how much that $1 would be worth at the end of the chart. Multiple stocks can be loaded for comparing their performance. I also added sound for fun. (<a href="https://github.com/alexmacy/sound-of-the-market" target="_blank">repository</a>)</p>
+    <div class="container">
+
+      <div class="gist">
+        <h3>'Live' rate records pulled from Yahoo Finance.</h3>
+        <a href="https://alexmacy.github.io/sound-of-the-market/live.html" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/d2f9486aa62411e7844a47544856e2a6/raw/f8325c9a656700d51fe5e75350b44a1edbe0be82/thumbnail.png">
+        </a>
+      </div>
+
+      <div class="gist">
+        <h3>Faster version that uses saved records instead of live.</h3>
+        <a href="https://alexmacy.github.io/sound-of-the-market/index.html" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/d2f9486aa62411e7844a47544856e2a6/raw/f8325c9a656700d51fe5e75350b44a1edbe0be82/thumbnail.png">
+        </a>
+      </div>
 
   </div>
-</div>
 
-<div>
-  <h2>Web Audio Experiments:</h2>
-  <p>A series of experiments in using the Web Audio API for Digital Signal Processing. This is an ongoing series, usually featuring the exploration of different methods of manipulating or synthesizing sound waves at the sample level, often working directly with the audio buffer. (<a href="https://github.com/alexmacy/Web-Audio-Experiments" target="_blank">repository</a>)</p>
-  <div class="container">
 
-    <div class="gist" id="gist_41bf2c3727c59a3366528807c2c708b2">
-      <h3>Web Audio Theremin &amp; Oscilloscope</h3>
-      <a href="//bl.ocks.org/alexmacy/41bf2c3727c59a3366528807c2c708b2" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/41bf2c3727c59a3366528807c2c708b2/raw/e17694d6d2ed23b648832e81d128cbaec9dda591/thumbnail.png">
-      </a>
-      <p>A sort of theremin that is controlled by tracking the mouse.</p>
+
+  <div>
+    <h2>Updated version of the Crossfilter.js demo</h2>
+    <p>I am a big fan of Crossfilter.js and have used it extensively and the Crossfilter demo was one of the first examples I used for learning how to build dashboards. Version 4 of d3.js had some major changes that effect how it interacts with Crossfilter, so I decided to make an updated version of the demo to gain a better understanding of these changes. I also made a version that includes a map... (<a href="https://github.com/alexmacy/crossfilter" target="_blank">repository</a>)</p>
+    <div class="container">
+     
+      <div class="break centered">
+        (These may be a bit slow to load because the data file is rather large.)
+      </div>
+
+      <div class="gist">
+        <h3>Updated version of the classic demo</h3>
+        <a href="https://alexmacy.github.io/crossfilter/" target="_blank">
+          <img src="https://gist.githubusercontent.com/alexmacy/ebe599703421757852d36bcf71174dfc/raw/984745e672e220dcaa5cda71a8746acd499f2c5d/thumbnail.png">
+        </a>
+      </div>
+
+      <div class="gist">
+        <h3>My version with an added map of the airports.</h3>
+        <a href="https://rawgit.com/alexmacy/crossfilter/master/demo/with-map.html" target="_blank">
+          <img src="https://github.com/alexmacy/crossfilter/raw/master/demo/map-thumb.png">
+        </a>
+      </div>
+
     </div>
-
-    <div class="gist" id="gist_d31b0819f11fc881add341ace6483bd3">
-      <h3>Web Audio Sampler with Effects</h3>
-      <a href="//bl.ocks.org/alexmacy/d31b0819f11fc881add341ace6483bd3" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/d31b0819f11fc881add341ace6483bd3/raw/2718f53d50bf4466300ac9f27762bee8ffc9acec/thumbnail.png">
-      </a>
-      <p>A Sampler with triggers that can be manually plotted and controlled by the keyboard. It also has Fade effects as well as Delay effects that adjust to match the beat. It comes with a small set of samples that can be used, but samples can also be loaded into the sampler client-side.</p>
-    </div>
-
-    <div class="gist" id="gist_cbe531e57c59071c4d702bcf79c43436">
-      <h3>Audio Synth via d3-ease</h3>
-      <a href="//bl.ocks.org/alexmacy/cbe531e57c59071c4d702bcf79c43436" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/cbe531e57c59071c4d702bcf79c43436/raw/f63f513adad81d713f70441be070e5c72c282314/thumbnail.png">
-      </a>
-      <p>A synthesizer that generates the waveshape by combining multiple waves that are generated by using d3's easing functions.</p>
-    </div>
-
-    <div class="gist" id="gist_5f5d6f75a44f27f19a2eebf7771ed73e">
-      <h3>Phase Shifting</h3>
-      <a href="//bl.ocks.org/alexmacy/5f5d6f75a44f27f19a2eebf7771ed73e" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/5f5d6f75a44f27f19a2eebf7771ed73e/raw/b6fc56d69eb05199217d462951564f9f2e997c12/thumbnail.png">
-      </a>
-      <p>Reproduction of Steve Reich's "It's Gonna Rain" and "Come Out"</p>
-    </div>
-
-    <div class="gist" id="gist_f25c39867546f8c72af13cb7e5bc654a">
-      <h3>I Am Sitting in a Room - Alvin Lucier</h3>
-      <a href="//bl.ocks.org/alexmacy/f25c39867546f8c72af13cb7e5bc654a" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/f25c39867546f8c72af13cb7e5bc654a/raw/92c02ba337c641bd07b6440474c12ff051791be2/thumbnail.png">
-      </a>
-      <p>Reproduction of Alvin Lucier's "I Am Sitting In A Room"</p>
-    </div>
-
-    <div class="gist" id="gist_5799c3e1f35f6aa0fbf5d723b7d6d35e">
-      <h3>Wave Phasing</h3>
-      <a href="//bl.ocks.org/alexmacy/5799c3e1f35f6aa0fbf5d723b7d6d35e" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/5799c3e1f35f6aa0fbf5d723b7d6d35e/raw/86c0a0cd40279c45396b06fb2c461b7a3cc4fc37/thumbnail.png">
-      </a>
-    </div>
-
   </div>
-</div>
 
-<div>
-  <h2>Perspective Tests:</h2>
-  <p>An experiment in simulating a 3D perspective based on an optical illusion, but without using any 3D tools. (<a href="https://github.com/alexmacy/Perspective-tests" target="_blank">repository</a>)</p>
-  <div class="container">
+  <h1>Other projects and repositories:</h1>
 
-    <div class="break centered">
-      (These are controlled by using Webgazer's face tracking, which requires a camera and allowing the browser access to the video feed.)
+    <h2>D3.js plug-in for Sublime Text 3:</h2>
+    <p>This is a collection of code completions and snippets to make working with and learning D3.js a little easier and quicker. It can be installed manually by downloading the zipped version or by  (<a href="https://packagecontrol.io/packages/D3js%20v4" target="_blank">page on Package Control</a>)</p>
+    <h3>Featuring:</h3>
+    <ul>
+      <li>Code completions and context menu for the entire D3.js library, organized to match D3's API Reference.</li>
+      <li>code snippets for changes from v3 to v4.</li>
+      <li>convenience snippets of commonly used features of D3.js.</li>
+    </ul>
+
+    <h2>FedEx Rate Calculator:</h2>
+    <p>A desktop application built with Electron that communicates with FedEx's web services for address validation, service availability, estimated delivery date and/or time, and live rate quotes. Note that this requires a FedEx account, API key, API password, and meter number - all of which can be managed from the a password protected settings page. (<a href="https://github.com/alexmacy/FedEx-Rate-Calculator" target="_blank">repository</a>)</p>
+
+    <h2>Google Chrome Extension for viewing SSRS reports:</h2>
+    <p>This extension fixes a a known issue with how the report is rendered in the browser. SSRS reports were designed to be viewed in Microsoft products, so this issue is due to Chrome rendering a certain style attribute differently than Internet Explorer.
+   (<a href="https://chrome.google.com/webstore/detail/ssrs-in-chrome/mcmknapfancdcboaebbfhadibffomkjk" target="_blank">page in the chrome web store</a>)</p>
+
+  <h1>Other experiments:</h1>
+  <div class="gists" id="gists">
+    <div class="container">
     </div>
-
-    <div class="gist">
-      <h3>Hallway</h3>
-      <a href="https://alexmacy.github.io/Perspective-tests" target="_blank">
-        <img src="https://alexmacy.github.io/Perspective-tests/thumbnail.png">
-      </a>
-    </div>
-
-    <div class="gist">
-      <h3>Teapot</h3>
-      <a href="https://alexmacy.github.io/Perspective-tests/teapot.html" target="_blank">
-        <img src="https://alexmacy.github.io/Perspective-tests/teapot-thumb.png">
-      </a>
-    </div>
-
-    <div class="break centered">
-      (This is another version of the hallway example, but is controlled by the mouse rather than face tracking.)
-    </div>
-
-    <div class="gist" id="gist_9309e227a7b756b5667f2933ba0e1e39">
-      <h3>Forced Perspective</h3>
-      <a href="//bl.ocks.org/alexmacy/9309e227a7b756b5667f2933ba0e1e39" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/9309e227a7b756b5667f2933ba0e1e39/raw/aebc539fd8f0b2000ec19d737562b4ae309939ac/thumbnail.png">
-      </a>
-    </div>
-
-  </div>
-</div>
-
-<div>
-  <h2>Sound of the Stock Market:</h2>
-  <p>A cost basis calculator and comparison tool, displaying the stock's weekly value on a Monday. Brushing the range chart adjusts the line chart so that the first instance of the stock is set to $1, showing how much that $1 would be worth at the end of the chart. Multiple stocks can be loaded for comparing their performance. I also added sound for fun. (<a href="https://github.com/alexmacy/sound-of-the-market" target="_blank">repository</a>)</p>
-  <div class="container">
-
-    <div class="gist">
-      <h3>'Live' rate records pulled from Yahoo Finance.</h3>
-      <a href="https://alexmacy.github.io/sound-of-the-market/live.html" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/d2f9486aa62411e7844a47544856e2a6/raw/f8325c9a656700d51fe5e75350b44a1edbe0be82/thumbnail.png">
-      </a>
-    </div>
-
-    <div class="gist">
-      <h3>Faster version that uses saved records instead of live.</h3>
-      <a href="https://alexmacy.github.io/sound-of-the-market/index.html" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/d2f9486aa62411e7844a47544856e2a6/raw/f8325c9a656700d51fe5e75350b44a1edbe0be82/thumbnail.png">
-      </a>
-    </div>
-
-</div>
-
-
-
-<div>
-  <h2>Updated version of the Crossfilter.js demo</h2>
-  <p>I am a big fan of Crossfilter.js and have used it extensively and the Crossfilter demo was one of the first examples I used for learning how to build dashboards. Version 4 of d3.js had some major changes that effect how it interacts with Crossfilter, so I decided to make an updated version of the demo to gain a better understanding of these changes. I also made a version that includes a map... (<a href="https://github.com/alexmacy/crossfilter" target="_blank">repository</a>)</p>
-  <div class="container">
-   
-    <div class="break centered">
-      (These may be a bit slow to load because the data file is rather large.)
-    </div>
-
-    <div class="gist">
-      <h3>Updated version of the classic demo</h3>
-      <a href="https://alexmacy.github.io/crossfilter/" target="_blank">
-        <img src="https://gist.githubusercontent.com/alexmacy/ebe599703421757852d36bcf71174dfc/raw/984745e672e220dcaa5cda71a8746acd499f2c5d/thumbnail.png">
-      </a>
-    </div>
-
-    <div class="gist">
-      <h3>My version with an added map of the airports.</h3>
-      <a href="https://rawgit.com/alexmacy/crossfilter/master/demo/with-map.html" target="_blank">
-        <img src="https://github.com/alexmacy/crossfilter/raw/master/demo/map-thumb.png">
-      </a>
-    </div>
-
-  </div>
-</div>
-
-<h1>Other projects and repositories:</h1>
-
-  <h2>D3.js plug-in for Sublime Text 3:</h2>
-  <p>This is a collection of code completions and snippets to make working with and learning D3.js a little easier and quicker. It can be installed manually by downloading the zipped version or by  (<a href="https://packagecontrol.io/packages/D3js%20v4" target="_blank">page on Package Control</a>)</p>
-  <h3>Featuring:</h3>
-  <ul>
-    <li>Code completions and context menu for the entire D3.js library, organized to match D3's API Reference.</li>
-    <li>code snippets for changes from v3 to v4.</li>
-    <li>convenience snippets of commonly used features of D3.js.</li>
-  </ul>
-
-  <h2>FedEx Rate Calculator:</h2>
-  <p>A desktop application built with Electron that communicates with FedEx's web services for address validation, service availability, estimated delivery date and/or time, and live rate quotes. Note that this requires a FedEx account, API key, API password, and meter number - all of which can be managed from the a password protected settings page. (<a href="https://github.com/alexmacy/FedEx-Rate-Calculator" target="_blank">repository</a>)</p>
-
-  <h2>Google Chrome Extension for viewing SSRS reports:</h2>
-  <p>This extension fixes a a known issue with how the report is rendered in the browser. SSRS reports were designed to be viewed in Microsoft products, so this issue is due to Chrome rendering a certain style attribute differently than Internet Explorer.
- (<a href="https://chrome.google.com/webstore/detail/ssrs-in-chrome/mcmknapfancdcboaebbfhadibffomkjk" target="_blank">page in the chrome web store</a>)</p>
-
-<h1>Other experiments:</h1>
-<div class="gists" id="gists">
-  <div class="container">
   </div>
 </div>
 </body>
@@ -277,5 +279,157 @@ d3.json("https://api.github.com/users/alexmacy/gists?per_page=999", function(err
             .attr("src", p.files["thumbnail.png"] ? p.files["thumbnail.png"].raw_url : "")
       })
 })
+
+let width = innerWidth,
+      height = innerHeight;
+
+const svg = d3.select(".background")
+    .attr("width", width)
+    .attr("height", height)
+
+const voronoi = d3.voronoi().size([width, height])
+
+const schemes = ["interpolateBlues", "interpolateGreens", "interpolateGreys",
+                "interpolateOranges", "interpolatePurples", "interpolateReds", 
+                "interpolateBuGn", "interpolateBuPu", "interpolateGnBu", 
+                "interpolateOrRd", "interpolatePuBuGn","interpolatePuBu", 
+                "interpolatePuRd", "interpolateRdPu", "interpolateYlGnBu",
+                "interpolateYlGn", "interpolateYlOrBr", "interpolateYlOrRd"] 
+
+let color = newColorScheme()
+const log = d3.scaleLog().range([0, 1])
+
+let active = false;
+
+let samples = d3.range(500).map(function(d) {
+  return [Math.random() * width, Math.random() * height]
+});
+
+let voronoiData = []
+
+updateVorData();
+
+const centers = svg.selectAll("circle")
+  .data(samples)
+  .enter().append("circle")
+    .attr("r", 2)
+    .attr("cx", function(d) {return d[0]})
+    .attr("cy", function(d) {return d[1]})
+  
+const polygons = svg.selectAll("polygon")
+    .data(voronoiData)
+  .enter().append("polygon")
+    .attr("transform", "translate(0,0)")
+    .attr("points", function(d) {return d})
+    .style("fill", function(d) {return color(log(d3.polygonArea(d)))})
+
+
+window.addEventListener("scroll", sortVert)
+
+window.addEventListener("resize", onWindowResize, false)
+
+function onWindowResize() {
+  width = innerWidth;
+  height = innerHeight;
+
+  svg.attr("width", width)
+    .attr("height", height)
+
+  voronoi.size([width, height])
+
+  sortHoriz()
+}
+
+
+function updateVorData() {
+  voronoiData = voronoi(samples).polygons().map(function(d) {return getPoints(d)});
+
+  const minMax = d3.extent(voronoiData, function(d) {return d3.polygonArea(d)});  
+  log.domain(minMax)
+}
+
+function getPoints(points) {
+  const extraPoints = new Array(20).fill(points[0])
+  return newShape = [...points, ...extraPoints].slice(0, 20)
+}
+
+function newColorScheme() {
+  return d3[schemes[Math.floor(Math.random() * schemes.length)]] 
+}
+
+
+function sortHoriz() {
+  console.log("sortHoriz()")
+  const t = d3.transition()
+      .duration(2000)
+      .on("end", morph)
+
+  polygons.transition(t)
+      .attr("transform", function(d, i) { 
+        return "translate(" + (-samples[i][0] + log(d3.polygonArea(d))*width) + ",0)"
+      })
+
+  centers.transition(t)
+      .attr("transform", function(d, i) { 
+        return "translate(" + (-d[0] + log(d3.polygonArea(voronoiData[i]))*width) + ",0)"
+      })
+}
+
+
+function sortVert() {
+  if (active) return;
+  active = true;
+
+  const t = d3.transition()
+      .duration(2000)
+      .on("end", morph)
+
+  polygons.transition(t)
+      .attr("transform", function(d, i) {
+        return "translate(0, " + (-samples[i][1] + log(d3.polygonArea(d))*height) + ")"
+      })
+
+  centers.transition(t)
+      .attr("transform", function(d, i) {
+        return "translate(0, " + (-d[1] + log(d3.polygonArea(voronoiData[i]))*height + ")")
+      })
+}
+
+
+function morph() {
+  active = false
+
+  centers.each(function(d, i) {
+    samples[i] = getElementCoords(this, {x:d[0], y:d[1]})
+  })
+
+  updateVorData()
+
+  color = newColorScheme()
+
+  const t = d3.transition()
+      .duration(4000)
+      .on("end", () => d3.timeout(sortHoriz, 10000))
+
+  polygons.data(voronoiData)
+      .transition(t)
+      .attr("transform", "translate(0,0)")
+      .attr("points", function(d) {return d})
+      .style("fill", function(d) {return color(log(d3.polygonArea(d)))})
+
+  centers.data(samples)
+      .attr("transform", "translate(0,0)")
+      .attr("cx", function(d) {return d[0]})
+      .attr("cy", function(d) {return d[1]})
+}
+
+// from https://stackoverflow.com/a/18561829
+function getElementCoords(element, coords) {
+  const ctm = element.getCTM(),
+  x = ctm.e + coords.x*ctm.a + coords.y*ctm.c,
+  y = ctm.f + coords.x*ctm.b + coords.y*ctm.d;
+  return [x, y];
+};
+
 </script>
 </html>
