@@ -5,12 +5,18 @@ html {
 }
 
 body {
+  margin: 0px;
+}
+
+.content {
   max-width: 960px;
-  background-color: #fff;
-  padding:50px;
+  background-color: rgba(255, 255, 255, .95);
+  padding-left:50px;
+  padding-right:50px;
   color:#595959;
   font-weight:400;
   margin: auto;
+  margin-top: 50px;
 }
 
 h1, h2, h3 {
@@ -100,4 +106,25 @@ img {
 
 .fa-github {
   background: #4078c0;
+}
+
+.background {
+  z-index: -1;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+}
+
+polygon { 
+  fill-opacity: .5; 
+  stroke: black; 
+}
+
+circle {
+  fill: none;
+}
+
+.links {
+  text-align: right;
+  padding: 10px;
 }
