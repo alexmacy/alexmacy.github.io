@@ -78,6 +78,8 @@ a:hover {
 img {
   border: 1px solid #cccccc;
   margin: auto;
+  max-height: 250px;
+  max-width: 250px;
 }
 
 .break {
