@@ -1,0 +1,1 @@
+A very bare bones speed test for comparing turbo.js to vanilla.js. Only tested in Chrome on a destop computer.

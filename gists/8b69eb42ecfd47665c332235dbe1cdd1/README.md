@@ -1,0 +1,9 @@
+I'm a big fan of locations and patterns, and particularly social patterns relating to location, movement, and usage trends. I'd been looking for a way to explore this when I heard about the Oakland Police Department having released all their <a href="http://arstechnica.com/tech-policy/2015/03/we-know-where-youve-been-ars-acquires-4-6m-license-plate-scans-from-the-cops/1/">license plate reader data</a>. 
+
+I filtered this data to license plates that appeared in a minimum of 15 distinct locations, and then removed obvious errors (like 'CAUTION' and other street signs) as well as government vehicles like buses and police cars (these have numeric digits only, rather than the alpha-numeric). The result was 205 plates, with 6,623 unique scan events.
+
+It's not really enough data to find trends, but it was a good exercise in learning mechanisms that can be used to find and rank common traits. For this, I compared the locations that each license plate had been scanned and calculated the similarity to the other license plates. This was done by looking at the co-occurance of the geographic coordinates after having rounded them to two decimal points.
+
+On load, each scan event is displayed as a SVG path, and a list of all the license plates is created on the left side. Hovering over this list and/or clicking on a license plate displays only that plate's events. This also compares this plate's events to teh events of all the other plates and returns a list of the 30 most similar plates on the right side of the window. Hovering over the list of compared license plates (or clicking on one) displays the compared plate's events as blue markers. 
+
+Alternatively, you can click on a marker and the list on the left will scroll to that plate and display it's other events.

@@ -1,0 +1,1 @@
+An adaptation of <a href='http://bl.ocks.org/mbostock/'>mbostock</a>'s block: <a href='http://bl.ocks.org/mbostock/39566aca95eb03ddd526'>Mergesort I</a>, modified to include color. The sorting is admittedly not as clear at first.

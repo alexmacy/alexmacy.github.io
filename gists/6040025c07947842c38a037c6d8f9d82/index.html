@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<style>
+  div {
+    margin: 10px;
+  }
+</style>
+
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="//turbo.github.io/js/turbo.js"></script>
+
+<div>
+  <input type="range" value="6" min="1" max="7" oninput="updateMagnitude(this.value)" onchange="reset()">
+  <text class="mag-val">Length of test array: 1e7</text>
+</div>
+
+
+<div>
+  <button onclick="testing = true;runTest()">Start test</button>
+  <button onclick="testing = false">Stop test</button>
+  <button onclick="reset()">Reset</button>
+</div>
+
+<div><h3>Average Duration </h3></div>
+
+<svg></svg>
+
+<div class="count"></div>
+
+<script>
+let turboData, vanillaData; 
+let arrayLength = 1e6;
+let count = 0;
+let testing = false;
+let results = { vanilla: 0, turbo: 0 };
+let maxDuration = 0;
+
+const barWidth = 20;
+
+const svg = d3.select("svg")
+    .attr("width", innerWidth)
+    .attr("height", 90);
+
+const labels = svg.append("g").selectAll("text")
+    .data(["vanilla", "turbo"])
+  .enter().append("text")
+    .attr("text-anchor", "end")
+    .attr("x", 75)
+    .attr("y", function(d, i) {return i * 50 + barWidth + 5})
+    .text(function(d) {return d + ".js"})
+
+const bars = svg.append("g").selectAll("rect")
+    .data(["vanilla", "turbo"])
+  .enter().append("rect")
+    .style("fill", "#005500")
+    .attr("y", function(d, i) {return i * 50})
+    .attr("height", barWidth * 2)
+    .attr("x", 85)
+
+const textValues = svg.append("g").selectAll("text")
+    .data(["vanilla", "turbo"])
+  .enter().append("text")
+    .attr("y", function(d, i) {return i * 50 + barWidth + 5})
+
+function reDraw() {
+  bars.attr("width", function(d) {return results[d] / count || 0});
+
+  textValues.attr("x", function(d) {return results[d] / count + 95 || 95})
+      .text(function(d) {
+        return count ? d3.format(".4f")(results[d] / count) + "ms" : "(no data)"})
+  
+  document.querySelector(".count").innerHTML = "iterations: " + count;  
+}
+
+updateMagnitude(6);
+reset();
+
+function reset() {
+  count = 0;
+  testing = false;
+  results = { vanilla: 0, turbo: 0 };
+  maxDuration = 0;
+
+  turboData = turbojs.alloc(arrayLength); 
+  for (i = 0; i <= arrayLength; i++) turboData.data[i] = i; 
+
+  vanillaData = new Array(arrayLength); 
+  for (i = 0; i <= arrayLength; i++) vanillaData[i] = i; 
+
+  reDraw();
+}
+
+function updateMagnitude(value) {
+  arrayLength = Number('1e' + value);
+  document.querySelector(".mag-val").innerHTML = "Length of test array: " + d3.format(",")(arrayLength);
+}
+
+function runTest() {
+  if (testing === false) return;
+
+  count += 1;
+
+  vanillaTest();
+  turboTest();
+
+  reDraw();
+  requestAnimationFrame(runTest)
+}
+
+function vanillaTest() {
+  const start = window.performance.now()
+  for (let i in vanillaData) vanillaData[i] *= 4;
+  const thisDuration = window.performance.now() - start;
+  maxDuration = Math.max(maxDuration, thisDuration);
+  results.vanilla += thisDuration;
+}
+
+function turboTest() {
+  const start = window.performance.now()
+  turbojs.run(turboData, `void main(void) { commit(read() * 4.); }`); 
+  const thisDuration = window.performance.now() - start;
+  maxDuration = Math.max(maxDuration, thisDuration);
+  results.turbo += thisDuration;
+}
+
+
+</script>

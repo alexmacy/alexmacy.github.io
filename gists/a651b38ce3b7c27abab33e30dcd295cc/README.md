@@ -1,0 +1,1 @@
+This is some exploration of harmonographs and part of a series explorations in visualizing parametric equations. Also check out <a href='http://bl.ocks.org/veltman/'>Noah Veltman</a>'s block: <a href='http://bl.ocks.org/veltman/72108247a8f8304ce0ccd7a50f49a9ca'>Harmonographics</a>

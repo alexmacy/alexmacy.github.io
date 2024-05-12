@@ -1,0 +1,3 @@
+This listens to your computer's microphone and draws the contents of the audio buffer as a series of (mostly) horizontal ellipses.
+
+This was made as part of a series exploring the visualization of audio that was presented at a d3.oakland. A big list of the demos from this series can be found <a href="https://alexmacy.github.io/d3.oakland" target="_blank">here</a>.

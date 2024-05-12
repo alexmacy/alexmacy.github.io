@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<style>
+  body {
+    margin: 0px;
+    background: #333;
+  }
+
+  svg {
+    position: fixed;
+    top: 0px;
+    z-index: -1;
+  }
+
+  .toggle-button {
+    float: right;
+    margin:  10px;
+    z-index: 9999;
+  }
+
+  polygon {
+    stroke: black;
+  }
+
+  text {
+    font-size: 20px;
+    alignment-baseline: hanging;
+  }
+  
+  .list text {
+    fill: white;
+  }
+</style>
+
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="states.js"></script>
+
+<body>
+  <!-- this one is rendered first so that the other is on top of it -->
+  <div style="display: flex; width: 100vw">
+
+    <div class="projections" style="flex-grow: 3">
+      <svg class="map hidden"></svg>
+      <svg class="map visible" data-html2canvas-ignore></svg>
+    
+      <div class="toggle-button" data-html2canvas-ignore>
+        <button>To Voronoi</button>
+      </div>
+    </div>
+
+    <div class="list" style="flex-basis: 20%">
+      <svg></svg>
+    </div>
+  </div>
+</body>
+
+<script>
+const width = document.querySelector('.projections').clientWidth;
+const height = innerHeight;
+const interval = 2000;
+
+const colorScale = d3.scaleLinear().range(['white', 'steelblue']);
+const projection = d3.geoAlbersUsa()
+
+setDimensions();
+
+const voronoi = d3.voronoi().size([width, height]);
+const voronoiData = voronoi(stateData.map(function(d) { return projection(d.capital)})).polygons();
+
+stateData.forEach(function(d, i) {
+  d.projected = d.geometry.coordinates[0].map(projection);
+  d.voronoi = shapeTweenSides(d.projected, voronoiData[i], true);
+  d.area = {};
+});
+
+
+const maps = d3.selectAll('.map')
+    .attr('width', width)
+    .attr('height', height);
+
+maps.append('rect')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('fill', '#333');
+
+maps.append('clipPath')
+    .attr('id', function(d, i) {return `myClip${i}`})
+  .selectAll('path')
+    .data(stateData)
+  .enter().append('path')
+    .attr('d', function(d) {return `M${d.projected}`});
+
+const states = maps.append('g')
+    .attr('clip-path', function(d, i) {return `url(#myClip${i})`})
+  .selectAll('polygon')
+    .data(stateData)
+  .enter().append('polygon')
+    .attr('fill', colorScale(.5))
+    .attr('points', function(d) {return d.projected});
+
+const list = d3.select('.list svg')
+    .attr('height', innerHeight - 44)
+  .append('g')
+    .attr('transform', 'translate(10, 10)')
+  .selectAll('text')
+    .data(stateData, function(d)  {return d.name})
+  .enter().append('text')
+
+
+
+getCanvasImage('projected', getCanvasImage)
+
+
+
+
+function toggleVoronoi(toField = 'voronoi') {
+  const fromField = toField === 'voronoi' ? 'projected' : 'voronoi';
+  console.log('toField', toField)
+
+  colorScale.domain(d3.extent(stateData, function(d) { return d.area[toField]}))
+
+  d3.select('.toggle-button button')
+      .text(toField === 'voronoi' ? 'To Original Shapes' : 'To Voronoi')
+      .on('click', function() {return toggleVoronoi(toField === 'voronoi' ? 'projected' : 'voronoi')})
+
+  states.transition().duration(interval)
+      .attr('points', function(d) { return d[toField]})
+      .attr('fill', function(d) { return colorScale(d.area[toField])})
+
+  const areas = {};
+
+  for (let state of stateData) areas[state.name] = state.area[toField];
+  const sorted = stateData.map(function(d) { return d.name}).sort(function(a, b) {return areas[b] - areas[a]});
+
+  list.interrupt().transition().duration(1000)
+      .attr('y', function(d) { return sorted.indexOf(d.name) * 22})
+      .text(function(d) { return `${d.name}: ${d3.format('.2%')(d.area.difference)}`})
+
+}
+
+
+function getCanvasImage(areaField, callback) {
+  d3.select('.hidden').selectAll('polygon')
+      .attr('fill', function(d, i) {return `rgb(${i + 100}, 255, 255)`})
+      .attr('points', function(d) { return d[areaField]});
+  
+  html2canvas(document.body, { logging: false, scale: 1 }).then(function(canvas) {
+    const context = canvas.getContext('2d');
+    const imageData = context.getImageData(0, 0, width, height).data;
+
+    const colorCounts = {};
+
+    let i = imageData.length;
+    while (i -= 4) {
+      const key = imageData[i] - 100;
+      const state = stateData[key] ? stateData[key].name : false;
+      if (state) colorCounts[state] = 1 + (colorCounts[state] || 0)                
+    }
+
+    for (let state of stateData) state.area[areaField] = colorCounts[state.name]
+
+    if (callback) return callback('voronoi');
+
+    for (let state of stateData) state.area.difference = state.area.voronoi / state.area.projected;
+      
+    d3.select('.hidden').remove();
+    toggleVoronoi('projected');
+
+  });
+}
+
+
+function setDimensions() {
+  const geoJSON = stateData.map(function(d) { return ({type: 'feature', geometry: d.geometry})}) 
+  projection.fitExtent([[0, 0], [width, height]], { type: 'FeatureCollection', features: geoJSON });
+}
+
+
+//this distributes the points based on 'sides' of the shorter path
+//this results in a more accurate final shape, but the transition is often not as clean
+function shapeTweenSides(a, b, findStart) {
+  const [fromShape, toShape] = a.length > b.length ? [a, b] : [b, a];
+  const newShape = [];
+
+  //make sure the orientation of the shapes match
+  if (d3.polygonArea(fromShape) < 0 != d3.polygonArea(toShape) < 0) toShape.reverse();
+
+  //calculate how many sides on toShape and how many points per side in order to have a matching number of points
+  const sides = toShape.length;
+  let stepsPerSide = Math.floor(fromShape.length/sides);
+
+  //cycle through each side, adding points along that side's path
+  for (let i = 0; i < sides; i++) {
+    const pointA = toShape[i];
+    let pointB;
+
+    //if it's the last side, change the step count to use the rest of the points needed to match lengths
+    if (toShape[i+1]) {
+      pointB = toShape[i+1];
+    } else {
+      pointB = toShape[0];
+      stepsPerSide = fromShape.length - newShape.length;
+    }
+    
+    const stepX = (pointB[0] - pointA[0])/stepsPerSide;
+    const stepY = (pointB[1] - pointA[1])/stepsPerSide;
+
+    for (let n = 0; n < stepsPerSide; n++) {
+      newShape.push([
+        newX = toShape[i][0] + (stepX * n),
+        newY = toShape[i][1] + (stepY * n)
+      ]);
+    }
+  }
+  return findStart ? findStartingPoint(fromShape, newShape) : newShape;
+}
+//optional function to match the starting point for both shapes
+function findStartingPoint(fromCoords, toCoords) {      
+  let closestDist = calcDistance(fromCoords[0], toCoords[0]);
+  
+  const closestPoints = { "from": 0 };
+  const tempArrayFrom = [];
+  const tempArrayTo = [];
+
+  for (let n = 0; n < toCoords.length; n++) {
+    const thisDist = calcDistance(fromCoords[0], toCoords[n]);
+    if (thisDist < closestDist) {
+      closestDist = thisDist;
+      closestPoints.to = n;
+    }
+  }
+
+  for (let i = 0; i < toCoords.length; i++) tempArrayTo.push(toCoords[i]);
+      
+  return tempArrayTo.splice(closestPoints.to).concat(tempArrayTo)
+}
+
+//convenience function for calculating distance between two points
+function calcDistance(coord1, coord2) {
+  const distX = coord2[0] - coord1[0];
+  const distY = coord2[1] - coord1[1];
+  return Math.sqrt(distX * distX + distY * distY);
+}
+
+</script>

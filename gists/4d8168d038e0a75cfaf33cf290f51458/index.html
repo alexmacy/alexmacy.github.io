@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Election History</title>
+
+  <style>
+    body {
+      margin: 10;
+    }
+    #tooltip {
+      background-color: black;
+      border: 1px white solid;
+      border-radius: 5px;
+      color: white;
+      margin: auto;
+      opacity: 0;
+      padding: 10px;
+      position: fixed;
+      z-index: 10;
+    }
+  </style>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+  <svg></svg>
+  <br>
+  <button id="sort-button" onclick="changeOrder()">Change to Chronological Sort</button>
+</body>
+
+<script>
+var statesInOrder = [
+  "Connecticut", "Delaware", "Georgia", "Maryland", "Massachusetts", 
+  "New_Hampshire", "New_Jersey", "Pennsylvania", "South_Carolina", "Virginia", 
+  "Kentucky", "New_York", "North_Carolina", "Rhode_Island", "Vermont", 
+  "Tennessee", "Ohio", "Louisiana", "Indiana", "Alabama", 
+  "Illinois", "Maine", "Mississippi", "Missouri", "Arkansas", 
+  "Michigan", "Florida", "Iowa", "Texas", "Wisconsin", 
+  "California", "Minnesota", "Oregon", "Kansas", "Nevada", 
+  "West_Virginia", "Nebraska", "Colorado", "Idaho", "Montana", 
+  "North_Dakota", "South_Dakota", "Washington", "Wyoming", "Utah", 
+  "Oklahoma", "Arizona", "New_Mexico", "Alaska", "Hawaii", 
+  "District_of_Columbia"
+]
+
+var colors = {
+    "Democratic": "#367EB8",
+    "Democratic-Republican": "#984EA3",
+    "Federalist": "#FF7F00",
+    "Other": "#4DAF4A",
+    "Republican": "#E41A1C",
+    "Whig": "#E6AB03"
+};
+
+var height = 500,
+    width = 960,
+    rowHeight,
+    columnWidth;
+
+var svg = d3.select("svg")
+    .attr("height", height - 40)
+    .attr("width", width);
+
+var x = d3.scaleBand().range([0, width - 150]);
+    alphaScale = d3.scaleBand().range([0, height - 80]),
+    yearScale = d3.scaleBand().range([0, height - 80]),
+    verticalSort = alphaScale;
+
+var chart = svg.append("g")
+    .attr("transform", "translate(0, 20)");
+
+var yearLabel = svg.append("text")
+    .attr("text-anchor", "start")
+    .attr("y", 15);
+
+var stateLabel = svg.append("text")
+    .attr("dominant-baseline", "hanging")
+    .attr("text-anchor", "start")
+    .attr("x", width - 145);
+
+var winnerLabel = svg.append("text")
+    .attr("dominant-baseline", "hanging")
+    .attr("text-anchor", "start")
+    .attr("y", height - 55);
+
+var tooltip = d3.select("body").append("div")
+    .attr("id", "tooltip")
+    .on("mousemove", moveTooltip)
+    .html("");
+
+d3.csv('elec.csv', function (error, data) {
+    if (error) throw error;
+
+    yearScale.domain(statesInOrder)
+
+    var states = statesInOrder.sort(d3.ascending),
+        elections = data.filter(function (d) {return d.state == "Delaware"})
+                        .map(function (d) {return d.year});
+
+    rowHeight = height / states.length;
+    columnWidth = width / elections.length;
+
+    x.domain(elections);
+    alphaScale.domain(states);
+
+    chart.selectAll("rect")
+        .data(data)
+      .enter().append("rect")
+        .attr("class", function (d) {
+          return d.year + " " + d.state.replace(" ", "_");
+        })
+        .attr("x", function (d) {return x(d.year);})
+        .attr("y", function (d) {return verticalSort(d.state);})
+        .attr("width", columnWidth - 3)
+        .attr("height", rowHeight - 2)
+        .style("fill", function (d) {return colors[d.winningParty];})
+        .style("fill-opacity", function (d) {return +d.p1_percent || 1;})
+        .on("mouseover", updateText);
+
+
+
+    function updateText() {
+      var data = d3.select(this).data()[0];
+
+      var htmlData = [
+        data.year, 
+        data.state.replace(/_/g, " "), 
+        "Votes: " + d3.format(",.0f")(data.total), 
+        d3.format(".2%")(data.p1_percent) + " " + data.winningParty, 
+        "Overall Winner: " + data.winner
+      ];
+
+      if (data.notes != "") htmlData.push("Note: " + data.notes);
+
+      d3.selectAll("rect")
+          .style("stroke", function (d) {
+            return d.state == data.state || d.year == data.year ? "black" : "";
+          })
+
+      yearLabel
+          .datum(data)
+          .attr("x", x(data.year))
+          .text(data.year);
+
+      stateLabel
+          .datum(data)
+          .attr("y", verticalSort(data.state) + rowHeight * 1.5)
+          .text(data.state.replace(/_/g, " "));
+
+      winnerLabel
+          .datum(data)
+          .attr("x", x(data.year))
+          .text(data.winner);
+
+      d3.select("#tooltip")
+          .style("z-index", 10)
+          .style("opacity", .8)
+          .html(htmlData.join("<br>"))
+    
+        moveTooltip();
+    }
+});
+
+
+
+function moveTooltip() {
+  var [posX, posY] = [d3.event.x, d3.event.y];
+  posX += posX > width / 2 ? -250 : 50;
+  posY += posY > height / 2 ? -150 : 50;
+
+  tooltip.interrupt()
+    .transition().duration(200).ease(d3.easeLinear)
+      .style("left", posX + "px")
+      .style("top", posY + "px");
+}
+
+
+
+function changeOrder() {
+    if (verticalSort == alphaScale) {
+      verticalSort = yearScale;
+      d3.select("#sort-button").html("Change to Alphabetical Sort")
+    } else {
+      verticalSort = alphaScale;
+      d3.select("#sort-button").html("Change to Chronological Sort")
+    }
+    
+    d3.selectAll("rect")
+      .transition().duration(2000)
+        .attr("y", function (d) {
+          return verticalSort(d.state);
+        });
+
+    stateLabel
+      .transition().duration(2000)
+        .attr("y", function(d) {return verticalSort(d.state) + rowHeight * 1.5})
+
+}
+</script>
+
+
+</html>

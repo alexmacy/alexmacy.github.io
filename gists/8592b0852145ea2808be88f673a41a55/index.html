@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body {margin:0;}
+        circle {stroke: none; fill: black;}
+        text {stroke: black;}
+    </style>
+    <script src="//d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+    <svg></svg>
+    <div>
+        <button onclick="stop = false; reCenter()">Start</button>
+        <button onclick="stop = true">Stop</button>
+        <text id="deviation"></text>
+    </div>
+</body>
+<script>
+    var width = 960,
+        height = 470,
+        transitionDuration = 200,
+        k = 5;
+
+    var oldDeviation,
+        endCount,
+        stop;
+
+    var voronoi = d3.voronoi().extent([[0, 0],[width, height]]);
+    var colors = ["#487860", "#D8C018","#C06000","#309090","#A81800"]
+
+    var randomX = d3.randomNormal(width/2, width/7)
+    var randomY = d3.randomNormal(height/2, height/7)
+    var points = d3.range(1000).map(function() {return {coords:[randomX(), randomY()]}});
+
+    var kPoints = Array.apply(null, Array(k)).map(function() {
+        return {coords: points[Math.floor(Math.random() * points.length)].coords,
+                population: 0};
+    })
+
+    var svg = d3.select("svg")
+        .attr("width", width)
+        .attr("height", height)
+
+    svg.append("g").selectAll("circle")
+        .data(points)
+      .enter().append("circle")
+        .attr("r", 2)
+        .attr("cx", function(d) {return d.coords[0]})
+        .attr("cy", function(d) {return d.coords[1]})
+
+    var lines = svg.append("g").selectAll("line")
+        .data(points)
+      .enter().append("line")
+        .attr("x1", function(d) {return d.coords[0]})
+        .attr("y1", function(d) {return d.coords[1]})
+
+    var centroids = svg.append("g").selectAll("text")
+        .data(kPoints)
+      .enter().append("text")
+        .attr("text-anchor", "middle")
+
+    groupPoints()
+    reDraw(0);
+    d3.select("#deviation").html("Deviation: " + getDeviation())
+
+    function groupPoints() {
+        points.forEach(function(d) {d.closest = getClosest(d.coords)})
+
+        kPoints.forEach(function(d, i) {
+            d.population = points.filter(function(p) {return p.closest[0].num == i}).length
+        })
+
+        centroids.text(function(d) {return d.population})
+    }
+
+    function reDraw(duration) {
+        lines.transition().duration(duration).ease(d3.easeLinear)
+            .style("stroke", function(d) {return colors[d.closest[0].num] || "#309090"})
+            .attr("x2", function(d) {return kPoints[d.closest[0].num].coords[0]})
+            .attr("y2", function(d) {return kPoints[d.closest[0].num].coords[1]})
+
+        centroids.transition().duration(duration).ease(d3.easeLinear)
+            .text(function(d) {return d.population})
+            .attr("x", function(d) {return d.coords[0]})
+            .attr("y", function(d) {return d.coords[1]})
+    }
+
+    function reCenter() {
+        kPoints.forEach(function(d, i) {
+            kPoints[i].coords = [
+                d3.mean(points, function(d) {if (d.closest[0].num == i) {return d.coords[0]}}),
+                d3.mean(points, function(d) {if (d.closest[0].num == i) {return d.coords[1]}})
+            ]
+            d.population = points.filter(function(d) {return d.closest[0].num == i}).length
+        })
+
+        groupPoints();
+        reDraw(transitionDuration)
+        d3.timeout(function() {trade()}, transitionDuration);
+    }
+
+    function trade() {
+        var links = voronoi(kPoints.map(function(d) {return d.coords}))
+            .edges.filter(function(d) {return d.left && d.right})
+            .map(function(d) {return [d.right.index, d.left.index]})
+
+        steps(0)
+        function steps(i) {
+            if (i<links.length) {
+                step(links[i]);
+                d3.timeout(function() {steps(++i)}, transitionDuration/links.length);
+            } else {
+              	reDraw(transitionDuration);
+                d3.select("#deviation").html("Deviation: " + getDeviation())
+                endCount = oldDeviation == getDeviation() ? endCount + 1 : 0;
+
+                if (stop || getDeviation() == 0 || endCount > 2) {
+                    return console.log("stopping");
+                } else {
+                    oldDeviation = getDeviation();
+                    reCenter();
+                }
+            }
+        }
+
+        function step([a, b]) {
+            if (stop) return;
+
+            var [from, to] = kPoints[a].population > kPoints[b].population ? [a,b] : [b,a];
+
+            var tradePoints = points.filter(function(d) {
+                return d.closest[0].num == from && d.closest[1].num == to
+            }).sort(function(a,b) {
+                var aDist = a.closest[1].distance - a.closest[0].distance
+                var bDist = b.closest[1].distance - b.closest[0].distance
+                return aDist - bDist
+            })
+
+            var qty = Math.abs(kPoints[from].population - kPoints[to].population)/2;
+            for (i=0; i<qty && i<tradePoints.length; i++) {
+                [tradePoints[i].closest[0],tradePoints[i].closest[1]] = 
+                [tradePoints[i].closest[1],tradePoints[i].closest[0]]
+            }
+
+            kPoints.forEach(function(d, i) {
+                d.population = points.filter(function(d) {return d.closest[0].num == i}).length
+            })
+        }
+    }
+
+    function getClosest(point) {
+        var closest = kPoints.map(function(d, i) {
+            return {num: i, distance: calcDistance(point, kPoints[i].coords)}
+        })
+
+        return closest.sort(function(a,b) {return a.distance - b.distance})
+    
+        function calcDistance(coord1, coord2) {
+            var distX = coord2[0] - coord1[0];
+            var distY = coord2[1] - coord1[1];
+            return Math.sqrt(distX * distX + distY * distY);
+        }
+    }   
+
+    function getDeviation() {
+        return d3.deviation(kPoints, function(d) {return d.population}).toFixed(2)
+    }
+</script>

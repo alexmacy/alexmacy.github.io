@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+	<style>
+		body {
+			background-color:#343633;
+		}
+		div {
+			position: absolute;
+			color:#ecf0f1;
+		    font-size: 1.17em;
+		    font-weight: bold;
+		    right: 30px;
+		}
+		#sliderVal {
+			left: 30px;
+		}
+		input[type=range][orient=vertical] {
+			position: absolute;
+			writing-mode: bt-lr; /* IE */
+			-webkit-appearance: slider-vertical; /* WebKit */
+			width: 5px;
+			height: 450px;
+			left: 30px;
+			top: 50px;
+		}	
+		.palette {
+			position: absolute;
+			width: 50px;
+			height: 450px;
+			right: 30px;
+			top: 50px;
+		}
+		.selected {
+			stroke: #ecf0f1;
+			stroke-width: 5px;
+		}
+		polyline {
+			fill: none;
+			stroke: black;
+			stroke-width:2px;
+		}
+</style>
+	<script src="//d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+	<div id="sliderVal">
+		Revolutions per minute: 120
+	</div>
+	<div>
+		<form>Draw Style: 
+			<input type="radio" name="drawStyle" value="line" checked="checked"> Line 
+			<input type="radio" name="drawStyle" value="circle"> Circle
+		</form>
+	</div>
+	<input type="range" id="slider" max=1300 value=120 orient="vertical">
+</body>
+<script>
+
+	var width = Math.max(960, innerWidth),
+    	height = Math.max(500, innerHeight);
+
+	d3.select("#slider")
+		.on("input", function() {
+			d3.select("#sliderVal").html("Revolutions per minute: " + this.value)
+			rotate(this.value)
+		})
+	
+	var svg = d3.select("body").append("svg")
+	    .attr("width", width)
+	    .attr("height", height)
+	    .append("g")
+	    	.attr("transform", "translate(" + width/2 + ", " + height/2 + ")rotate(0)")
+
+	var colors = [["#F7DB51"],["#E43D1D"],["#217FBE"],["#3F9F44"],["#7C5289"]]
+	var drawColor = colors[0];
+
+	var palette = d3.select("body").append("svg")
+		.attr("class", "palette");
+
+	palette.selectAll("rect")
+		.data(colors)
+	  .enter().append("rect")
+		.attr("width", 40)
+		.attr("height", 40)
+		.style("fill", function(d) {return d;})
+		.attr("transform", function(d, i) {return "translate(5, " + ((i)*50 + 5) + ")"})
+		.on("click", function(d) {
+			d3.select(".selected").classed("selected", false)
+			d3.select(this).classed("selected", true)
+			drawColor = d;
+		})
+
+	palette.select("rect").classed("selected", true)
+
+	var platter = svg.append("circle")
+	    .attr("r", width)
+	    .attr("cx", 0)
+	    .attr("cy", 0)
+	    .style("fill-opacity", 0)
+		.on("mousedown", function() {
+			var drawStyle = d3.select('input:checked').attr("value");
+			if (drawStyle == "line") {
+				var newShape = svg.append("polyline")
+					.attr("class", "drawn")
+					.style("stroke", drawColor)
+					.attr("points", d3.mouse(this) + " ")
+		    	
+		    	svg.call(d3.drag()
+		        	.on("drag", function() {
+						newShape.attr("points", newShape.attr("points") + " " + d3.mouse(this) + " ")
+		        	}));
+			} else if (drawStyle == "circle") {
+	    		svg.append("circle")
+					.attr("class", "drawn")
+					.attr("r", 2)
+					.attr("cx", d3.mouse(this)[0])
+					.attr("cy", d3.mouse(this)[1])
+					.style("fill", drawColor)
+
+		    	svg.call(d3.drag()
+		        	.on("drag", function() {
+			    		svg.append("circle")
+							.attr("class", "drawn")
+							.attr("r", 2)
+							.attr("cx", d3.mouse(this)[0])
+							.attr("cy", d3.mouse(this)[1])
+							.style("fill", drawColor)
+		        	}));	
+			}
+		})
+
+	var centerDot = svg.append("circle")
+		.attr("r", 5)
+		.attr("cx", 0)
+		.attr("cy", 0)
+		.style("fill", "#ecf0f1")
+
+	var centerTriangle = svg.append("polygon")
+		.attr("points", [[-5,0],[0,10],[5,0]])
+		.style("fill", "#ecf0f1")
+
+	rotate(120);
+
+	function rotate(rpm) {
+		if (rpm == 0) {
+			svg.interrupt()
+		} else {
+			var newAngle = svg._groups[0][0].transform.animVal[1].angle + 120;
+
+			svg.transition().duration(20000/rpm).ease(d3.easeLinear)
+				.attr("transform", "translate(" + width/2 + ", " + height/2 + ")rotate(" + newAngle + ")")
+				.on("end", function() {rotate(rpm)})
+		}
+	}
+</script>

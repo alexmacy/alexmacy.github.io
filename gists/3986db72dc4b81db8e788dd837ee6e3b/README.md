@@ -1,0 +1,4 @@
+This is an experiment in moving and shaping voronoi polygons to normalize the dispersion of points. The idea arose while <a href="http://bl.ocks.org/alexmacy/6272668a45ce0f8a1fed7880814bc21e" target="_blank">mapping emergency calls logged by the San Francisco Fire Department</a>, and was also inspired by Noah Veltman's <a href="http://bl.ocks.org/veltman/3d1fb70e6993d4eb2eff7112c9e7bcf4" target="_blank">Voronoi relaxation</a>.
+
+
+To do this, I kind of combined aspects of <a href="//en.wikipedia.org/wiki/Lloyd%27s_algorithm" target="_blank">Lloyd's algorithm</a> and <a href="https://en.wikipedia.org/wiki/K-means_clustering" target="_blank">k-means clustering</a>.

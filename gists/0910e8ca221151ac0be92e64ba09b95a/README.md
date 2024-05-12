@@ -1,0 +1,1 @@
+An update to [this block](https://bl.ocks.org/alexmacy/3d3567947868d615c418922ad277aeab) that calculates the area of each state before and after transitioning to the voronoi diagram. This is done by rendering a hidden svg element, creating a canvas snapshot of it, and then getting the image data from the canvas context.

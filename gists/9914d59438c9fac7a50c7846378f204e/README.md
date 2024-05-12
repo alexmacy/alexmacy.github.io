@@ -1,0 +1,4 @@
+A relatively simple audio spectrum analyzer built using the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API" target="_blank">Web Audio API</a> and <a href="https://d3js.org/" target="_blank">d3.js</a> and rendered using canvas. Also made a dark version: <a href='http://bl.ocks.org/alexmacy/52e607ddddad95e5653a0a96681aabaa'>Audio Spectrum Analyzer - dark</a>
+
+
+This was made as part of a series exploring the visualization of audio that was presented at a d3.oakland meetup. A big list of the demos from this series can be found <a href="https://alexmacy.github.io/d3.oakland" target="_blank">here</a>.

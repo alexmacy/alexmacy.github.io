@@ -1,0 +1,203 @@
+<html>
+<meta charset="utf-8">
+
+<head>
+
+    <style>
+        rect {
+            stroke-linecap: round;
+            stroke-width: .25px;
+            stroke: black;
+            fill: #004d00;
+        }
+    </style>
+
+    <script src="//d3js.org/d3.v3.min.js"></script>
+
+</head>
+
+<body>
+
+    <div id="viz" style="width: 100%;height:100%"></div>
+
+</body>
+
+<script>
+
+    var n = 64,
+        duration = 1000;
+
+    var iteration;
+
+    var margin = 40,
+        vizDims = document.getElementById('viz').getBoundingClientRect(),
+        width = vizDims.width - margin - margin,
+        height = vizDims.height - margin - margin;
+  
+    var x = d3.scale.ordinal()
+        .domain(d3.range(n))
+        .rangePoints([0, width]);
+
+    var svg = d3.select("#viz").append("svg")
+        .attr("width", width + margin + margin)
+        .attr("height", height + margin + margin)
+      .append("g")
+        .attr("class", "rows")
+        .attr("transform", "translate(" + margin + "," + margin + ")");
+    
+    loadRow();
+
+    function loadRow() {
+
+        iteration = 0;
+
+        var array = d3.shuffle(d3.range(n)),
+            actions = mergesort(array.slice()).reverse();
+
+        var rowCount = Math.ceil(actions.length/n),
+            rectHeight = (height/rowCount) * .3,
+            rectWidth = (width/n) * .9;
+
+        d3.select("svg").select("g").selectAll("*").html('').remove()
+
+        var rect = svg.append("g")
+            .attr("class", "rect row")
+          .selectAll("rect")
+            .data(array.map(function(v, i) {
+                return {
+                    value: v,
+                    index: i,
+                    id: i,
+                    array: 0
+                };
+            }))
+            .enter().append("rect")
+                .attr({
+                    "class": "row" + iteration,
+                    "id": function(d) {return "rect" + iteration + "_" + d.id},
+                    "x": 0,
+                    "y": x(0),
+                    "height": rectHeight,
+                    "width": rectWidth
+                })
+                .style("fill-opacity", function(d) { return d.value/n })
+                .transition().duration(duration)
+                .attr("x", function(d) {return x(d.index)})
+
+        var row0 = rect[0];
+
+        setTimeout(function() {mergeRows()}, duration * 2);
+
+        function mergeRows() {
+
+            var row1 = new Array(n);
+
+            var transition = d3.transition()
+                .duration(duration/20)
+                .each("start", function start() {
+                    var action = actions.pop();
+                    if (action[1] === 0) { iteration++; };
+                    switch (action.type) {
+                        case "copy": {
+                            var i = action[0],
+                                j = action[1],
+                                e = row1[j] = row0[i],
+                                d = e.__data__;
+                            d.index = j;
+                            transition.each(function() {
+                                var source = d3.select("#rect" + (iteration - 1) + "_" + d.id)
+                                d3.select("svg").select(".row").append("rect")
+                                    .attr({
+                                        "class": "row" + iteration,
+                                        "id": "rect" + iteration + "_" + d.id,
+                                        "style": source.attr("style"),
+                                        "x": source.attr("x"),
+                                        "y": source.attr("y"),
+                                        "height": rectHeight,
+                                        "width": rectWidth
+                                    })
+                                    .transition().duration(duration/2)
+                                    .attr("x", x(d.index))
+                                    .attr("y", iteration * rectHeight * 2 )
+
+                            });
+                            break;
+                        }
+                        case "swap": {
+                                var t = row0;
+                                row0 = row1;
+                                row1 = t;
+                                break;
+                        }
+                    }
+                    if (actions.length) {
+                        transition = transition.transition().each("start", start);
+                    } else {
+                        setTimeout(function() { returnRects()}, duration * 2)
+                    };
+
+                });
+
+        }
+
+    }
+
+    function returnRects() {
+
+        for (z=1; z<=iteration; z++) {
+            var thisRow = d3.selectAll(".row" + z)[0];
+
+            for (i=0; i<thisRow.length; i++) {
+                var thisId = d3.select(thisRow[i]).attr("id").split("_")[1];
+
+                d3.select(thisRow[i])
+                    .transition().duration(duration * 2)
+                    .attr("x", x(thisId))
+                    .attr("y", 0)
+                    .remove()
+            }
+        }
+
+        setTimeout(function() { 
+            d3.selectAll('rect')
+                .transition().duration(duration * 2)
+                .attr("x", function() {return x(0)})
+
+            setTimeout(function() { loadRow(); }, duration * 2)
+        }, duration * 2)
+
+    }
+
+    function mergesort(array) {
+
+        actions = [];
+        n = array.length;
+
+        var array0 = array,
+            array1 = new Array(n);
+
+        for (var m = 1; m < n; m <<= 1) {
+            for (var i = 0; i < n; i += (m << 1)) {
+                merge(i, Math.min(i + m, n), Math.min(i + (m << 1), n));
+            }
+            actions.push({type: "swap"});
+            array = array0, array0 = array1, array1 = array;
+        }
+
+        function merge(left, right, end) {
+            for (var i0 = left, i1 = right, j = left; j < end; ++j) {
+                if (i0 < right && (i1 >= end || array0[i0] <= array0[i1])) {
+                    array1[j] = array0[i0];
+                    actions.push({type: "copy", "0": i0++, "1": j});
+                } else {
+                    array1[j] = array0[i1];
+                    actions.push({type: "copy", "0": i1++, "1": j});
+                }
+            }
+        }
+
+        return actions;
+    }
+
+</script>
+</html>
