@@ -1,0 +1,3 @@
+I realized that the annoying reshaping transition was a result of the new polygon having more sides than the one it was transitioning from. This meant that rather than transition the side from somewhere along the path of the old polygon, it would transition from off screen. To solve this, I included a function that basically draws extra points on top of eachother to give the polygon more sides than necessary - you can't see them, but they're there if you inspect the elements.
+
+The previous versions are here: <a href='http://bl.ocks.org/alexmacy/07389b74c1a83b589c1d9c67c6cef14c'>Voronoi Shuffling v1</a> & <a href='http://bl.ocks.org/alexmacy/1944e5d8967453e1f7c128b7d668761f'>Voronoi Shuffling v2</a>

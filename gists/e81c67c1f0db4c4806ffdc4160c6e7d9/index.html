@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    line {
+      stroke: steelblue;
+      stroke-width: .5px;
+    }
+
+    #tooltip {
+      background-color: black;
+      border: 1px white solid;
+      border-radius: 5px;
+      color: white;
+      margin: auto;
+      opacity: 0;
+      padding: 10px;
+      position: fixed;
+      z-index: 10;
+    }
+  </style>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+  <svg></svg>
+</body>
+<script>
+var height = 500,
+    width = 960;
+
+var svg = d3.select("svg")
+    .attr("height", height)
+    .attr("width", width)
+    .on("mousemove", moveTooltip)
+    .on("mouseout", hideTooltip);
+
+var grid = svg.append("g");
+
+grid.selectAll(".horizontal")
+    .data(d3.range(0, width, 20))
+  .enter().append("line")
+    .attr("x1", function(d) {return d})
+    .attr("x2", function(d) {return d})
+    .attr("y2", function(d) {return height});
+
+grid.selectAll(".vertical")
+    .data(d3.range(0, height, 20))
+  .enter().append("line")
+    .attr("y1", function(d) {return d})
+    .attr("x2", width)
+    .attr("y2", function(d) {return d});
+
+var flashRect = svg.append("rect")
+    .style("fill", "orange")
+    .style("fill-opacity", 0)
+    .attr("width", width)
+    .attr("height", height)
+
+var tooltip = d3.select("body").append("div")
+    .attr("id", "tooltip")
+    .html("")
+    .on("mouseover", moveTooltip)
+    .on("click", clicked);
+
+function moveTooltip() {
+  var [posX, posY] = [d3.event.x, d3.event.y];
+  posX += posX > width / 2 ? -100 : 50;
+  posY += posY > height / 2 ? -100 : 50;
+
+  tooltip.interrupt()
+      .style("opacity", .8)
+      .html("x: " + d3.event.x + "<br>y: " + d3.event.y)
+    .transition().duration(200).ease(d3.easeLinear)
+      .style("left", posX + "px")
+      .style("top", posY + "px");
+}
+
+function hideTooltip() {
+  tooltip.interrupt()
+    .transition().duration(200)
+      .style("opacity", 0)
+}
+
+function clicked() {
+  flashRect
+    .transition().duration(50)
+      .style("fill-opacity", 1)
+    .transition().duration(50)
+      .style("fill-opacity", 0)
+}
+</script>
+</html>

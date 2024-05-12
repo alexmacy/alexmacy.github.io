@@ -1,0 +1,151 @@
+<html>
+<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+<body>
+    <div id="viz" style="width: 90%;height:90%;margin:auto;"></div>
+    <div style="float:right;margin-right: 5%">
+        circle radius:
+        <text id="radius-text" style="margin-right:10px">&nbsp;</text>
+        <input id="radius-slider" type="range" style="width:100px" min="1" max="50" value="20" oninput="reSize()">
+        # of circles: 
+        <text id="count-text" style="margin-right:10px"></text>
+        <input id="count-slider" type="range" style="width:500px" min="0" max="300" value="50" oninput="draw()">
+        <input id="shuffle" type="button" value="shuffle" onclick="d3.selectAll('circle')[0].forEach(function(d) {shuffle(d.id.split('_')[1]);})">
+    </div>
+</body>
+<script>
+        
+    var vizDims = document.getElementById('viz').getBoundingClientRect(); 
+    var width = vizDims.width;
+    var height = vizDims.height;
+    var margin = 50;
+
+    //this will serve as the canvas
+    var svg = d3.select('#viz').append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .style('border', '1px black solid')
+
+    //dragging a circle also moves its pair
+    var drag = d3.behavior.drag()
+        .on("drag", function() {
+            var idNum = this.id.split("_")[1]
+            var thisCircle = d3.select('#circle_' + idNum);
+            var thisBlank = d3.select('#blank_' + idNum);
+            thisCircle
+                .attr('cx', +thisCircle.attr('cx') + d3.event.dx)
+                .attr('cy', +thisCircle.attr('cy') + d3.event.dy)    
+            thisBlank
+                .attr('cx', +thisBlank.attr('cx') + d3.event.dx)
+                .attr('cy', +thisBlank.attr('cy') + d3.event.dy)  
+        });
+
+    reSize();
+    draw();
+
+    //change the radius of the circles when the radius slider is moved
+    function reSize() {
+        radius = document.getElementById('radius-text').innerHTML = document.getElementById('radius-slider').value;
+        d3.selectAll('circle')
+            .attr('r', radius);
+    }
+
+    //generate coordinates for drawing new circles or shuffling existing circles
+    function getCoordinates() {
+
+        //random coordinates for the base circle
+        newCX = Math.random() * (width - margin * 2);
+        newCY = Math.random() * (height - margin * 2);
+
+        //random number to be used for the offset
+        xRand = Math.random();
+        yRand = Math.random();
+
+        //define the offset, including some code to make sure the offset to falls within a certain range and goes in a random direction
+        cxOffset = xRand > .5 ? 
+            newCX + xRand * radius : 
+            newCX - (xRand + .5) * radius; 
+        cyOffset = yRand > .5 ? 
+            newCY + yRand * radius : 
+            newCY - (yRand + .5) * radius;
+
+    }
+
+    //draw or remove circles
+    function draw() {
+
+        var newCount = document.getElementById('count-text').innerHTML = document.getElementById('count-slider').value
+
+        //bind the count of currently existing circle pairs to a variable for comparison
+        var oldCount = d3.selectAll('.circle')[0].length;
+
+        //if adding, add from number of existing circles, to the new count 
+        if (oldCount < newCount) {
+
+            //for loop from currently existing circle pairs, to the count number passed to this function 
+            for(i=oldCount+1;i<=newCount;i++) {
+
+                getCoordinates();
+
+                //the base (black) circle
+                var circle = svg.append('circle')
+                    .style('fill', 'black')
+                    .attr('cx', newCX)
+                    .attr('cy', newCY)
+                    .attr('r', radius)
+                    .attr('id', 'circle_' + i)
+                    .attr('class', 'circle')
+            
+                //create the blank (white) circle positioned based on the offset defined above
+                var blank = d3.select('svg').append('circle')
+                    .style('fill', 'white')
+                    .attr('cx', cxOffset)
+                    .attr('cy', cyOffset)
+                    .attr('r', radius)
+                    .attr('id', 'blank_' + i)
+                    .attr('class', 'blank')
+            }
+
+            //add transform attribute and attach the drag and double-click event listeners to all new circles
+            d3.selectAll('circle')
+                .attr('transform', 'translate(' + margin + ',' + margin + ')')
+                .call(drag)
+                .on("dblclick", function() {
+                    //double clicking a circle calls the shuffle function on the pair
+                    shuffle(this.id.split("_")[1])
+                })
+
+        //if the count is lower, remove enough circles to match the count
+        } else {
+
+            for(i=oldCount;i>+newCount;i--) {
+                d3.select('#circle_' + i).remove()
+                d3.select('#blank_' + i).remove()
+            }
+
+        }
+
+    }
+
+    //shuffle function to move the circle pairs one at a time
+    //this is called on all circles by clicking the button, or individual pairs by double-clicking a circle
+    function shuffle(d) {
+
+        getCoordinates();
+
+        d3.select('#circle_' + d)
+            .transition()
+            .duration(850)
+            .attr('cx', newCX)
+            .attr('cy', newCY)
+
+        d3.select('#blank_' + d)
+            .transition()
+            .duration(1000)
+            .attr('cx', cxOffset)
+            .attr('cy', cyOffset);
+
+    }
+
+</script>
+
+</html>

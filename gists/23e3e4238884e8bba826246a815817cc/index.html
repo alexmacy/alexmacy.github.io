@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<script src="//d3js.org/d3.v4.min.js"></script>
+<style>
+  .edges,.corners rect {
+    fill: white;
+    fill-opacity: 0;
+    width: 20px;
+    height: 20px;
+  }
+
+  .controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
+  }
+  
+  svg {
+    border: 1px solid black;
+    position: absolute;
+    background: rgba(255, 255, 255, .9);
+  }
+
+  .e, .w {
+    cursor: ew-resize;
+  }
+  .n, .s {
+    cursor: ns-resize;
+  }
+  .n-w, .s-e {
+    cursor: nwse-resize;
+  } 
+  .s-w, .n-e {
+    cursor: nesw-resize;
+  }
+  path {
+    fill: none;
+    stroke: black;
+  }
+</style>
+
+<body>
+<div class="controls">
+  <button onclick="charts.push(new Chart())">New Chart</button>
+  <button onclick="snap()">Snap</button>
+</div>
+<div class="chartDiv" style="position: absolute;top: 0px;left: 0px;">
+</div>
+</body>
+
+<script>
+const edgeWidth = 20;
+const dragVals = { x: 0, y: 0, w: 0, top: 0, n: 0, width: 0, height: 0 };
+
+const charts = [];
+let maxZ = 0;
+
+const Chart = function() {
+  let width = innerWidth / 2;
+  let height = innerHeight / 2;
+  let svgX = 0;
+  let svgY = 0;
+  const chartNum = charts.length;
+
+  const data = d3.range(200).map(function(d) {return [Math.random(), Math.random()]})
+  const voronoi = d3.voronoi().size([1, 1]);
+  const diagram = voronoi(data);
+
+  const path = d3.line()
+      .x(function(d) {return d[0] * (width - edgeWidth * 2)})
+      .y(function(d) {return d[1] * (height - edgeWidth * 2)});
+
+  const svg = d3.select(".chartDiv").append("svg")
+      .style("z-index", ++maxZ);
+
+  const edges = svg.append("g")
+      .attr("class", "edges")
+      .selectAll("rect")
+      .data(["n", "e", "s", "w"])
+      .enter().append("rect")
+        .attr("class", function(d) {return d})
+        .call(d3.drag().on("start", dragStarted).on("drag", resized))
+
+  const corners = svg.append("g")
+      .attr("class", "corners")
+      .selectAll("rect")
+      .data(["n-w", "n-e", "s-w", "s-e"])
+    .enter().append("rect")
+      .attr("class", function(d) {return d})
+      .call(d3.drag().on("start", dragStarted).on("drag", resized))
+
+  const chartBody = svg.append("g")
+      .style("stroke", "black")
+      .attr("transform", `translate(${edgeWidth}, ${edgeWidth})`)
+
+  const circle = chartBody.append("circle")
+      .style("fill", "#119911")
+      .style("opacity", .7)
+
+  const polygons = chartBody.selectAll("path")
+      .data(diagram.polygons())
+    .enter().append("path")
+
+  const mouseSensor = chartBody.append("rect")
+      .attr("class", "sensor")
+      .style("fill-opacity", 0)
+      .style("cursor", "move")
+      .call(d3.drag().on("start", dragStarted).on("drag", resized))
+      .on("mousemove", function() {
+        const mouseX = (d3.event.layerX - edgeWidth) / (width - edgeWidth * 2);
+        const mouseY = (d3.event.layerY - edgeWidth) / (height - edgeWidth * 2);
+        for (let chart of charts) chart.highlight(mouseX, mouseY);
+      })
+      .on("mouseout", function() {
+        return d3.selectAll("path").style("fill", "none")
+      })
+
+  reDraw()
+
+  this.highlight = function(x, y) {
+    const cellNum = diagram.find(x, y).index
+    polygons.style("fill", function(d, i) {
+      return i === cellNum ? "red" : "none"
+    });    
+  }
+
+  this.snap = function() {
+    const split = charts.length % 2 === 0;
+
+    width = split ? innerWidth / 2 : innerWidth;
+    height = split ? innerHeight / (charts.length / 2) : innerHeight / charts.length;
+    svgX = split ? chartNum % 2 * width : 0;
+    svgY = split ? Math.floor(chartNum / 2) * height : chartNum * height;
+    reDraw(500);
+  }
+
+  function dragStarted() {
+    svg.style("z-index", ++maxZ);
+
+    dragVals.x = d3.event.x;
+    dragVals.y = d3.event.y;
+    dragVals.w = svgX;
+    dragVals.n = svgY;
+    dragVals.width = width;
+    dragVals.height = height;
+  }
+
+  function resized(d) {
+    const dx = d3.event.x - dragVals.x;
+    const dy = d3.event.y - dragVals.y;
+
+    if (!d) {
+      svgX += d3.event.x - dragVals.x;
+      svgY += d3.event.y - dragVals.y;     
+      return reDraw(); 
+    }
+
+    if (d.includes("e")) {
+      width = Math.max(50, Math.min(innerWidth - svgX, dragVals.width + dx));
+    } 
+
+    if (d.includes("s")) {
+      height = Math.max(50, Math.min(innerHeight - svgY, dragVals.height + dy));
+    } 
+
+    if (d.includes("w")) {
+      if (width - dx < 50) return;
+      svgX = Math.max(0, svgX + dx);
+      width = svgX === 0 ? dragVals.width + dragVals.w : width - dx;
+    } 
+
+    if (d.includes("n")) {
+      if (height - dy < 50) return;
+      svgY = Math.max(0, svgY + dy);
+      height = svgY === 0 ? dragVals.height + dragVals.n : height - dy;
+    }
+
+    reDraw()
+  }
+
+  function reDraw(t = 0) {
+    svg.transition().duration(t)
+        .attr("width", width + "px")
+        .attr("height", height + "px")
+        .style("left", svgX + "px")
+        .style("top", svgY + "px")
+
+    edges.transition().duration(t)
+        .attr("width", function(d) {return d === "e" || d === "w" ? edgeWidth : width})
+        .attr("height", function(d) {return d === "n" || d === "s" ? edgeWidth : height})
+        .attr("x", function(d) {return d === "e"  ? width - edgeWidth : 0})
+        .attr("y", function(d) {return d === "s" ? height - edgeWidth : 0});      
+
+    corners.transition().duration(t)
+        .attr("x", function(d) {return d.includes("e") ? width - edgeWidth : 0})
+        .attr("y", function(d) {return d.includes("s") ? height - edgeWidth : 0});
+
+    chartBody.transition().duration(t)
+        .attr("width", width - edgeWidth * 2)
+        .attr("height", height - edgeWidth * 2)
+
+    circle.transition().duration(t)
+        .attr("cx", width / 2 - edgeWidth)
+        .attr("cy", height / 2 - edgeWidth)
+        .attr("r", Math.min(width, height) / 4)
+
+    mouseSensor.transition().duration(t)
+        .attr("width", width - edgeWidth * 2)
+        .attr("height", height - edgeWidth * 2)
+
+    polygons.transition().duration(t)
+        .attr("d", path)
+  }
+
+}
+
+function snap() {
+  charts.forEach(function(d) {return d.snap()})
+}
+
+charts.push(new Chart());
+
+</script>
+</html>

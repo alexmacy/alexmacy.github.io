@@ -1,0 +1,151 @@
+<html>
+<meta charset="utf-8">
+
+<head>
+
+    <style>
+        rect {
+            stroke-linecap: round;
+            stroke-width: .25px;
+            stroke: black;
+            fill: #004d00;
+        }
+    </style>
+
+    <script src="//d3js.org/d3.v3.min.js"></script>
+
+</head>
+
+<body>
+
+    <div id="viz" style="width: 100%;height:100%"></div>
+
+</body>
+
+<script>
+
+    var n = 100,
+        duration = 2000;
+
+    var margin = 40,
+        vizDims = document.getElementById('viz').getBoundingClientRect(),
+        width = vizDims.width - margin - margin,
+        height = vizDims.height - margin - margin;
+  
+    var x = d3.scale.ordinal()
+        .domain(d3.range(n))
+        .rangePoints([0, width]);
+
+    var svg = d3.select("#viz").append("svg")
+        .attr("width", width + margin + margin)
+        .attr("height", height + margin + margin)
+      .append("g")
+        .attr("class", "rows")
+        .attr("transform", "translate(" + margin + "," + margin + ")");
+    
+    var array = d3.shuffle(d3.range(n));
+
+    var rectHeight = 30,
+        rectWidth = (width/n) * 1;
+
+    var rectData = array.map(function(v, i) { 
+                    return {
+                        value: v,
+                        index: i,
+                        array: 0
+                    };
+                });
+
+    var rectOrig = svg.append("g")
+        .attr("class", "orig row")
+      .selectAll("rect")
+        .data(rectData)
+        .enter().append("rect")
+            .attr({
+                "class": "orig",
+                "id": function(d) { return "orig_" + d.index;}, 
+                "x": 0,
+                "y": x(0),
+                "height": rectHeight,
+                "width": rectWidth
+            })
+            .style("fill-opacity", function(d) { return d.value/n })
+            .transition().duration(duration)
+            .attr("x", function(d) {return x(d.index)})
+
+
+    var rectSorted = svg.append("g")
+        .attr("class", "sorted row")
+      .selectAll("rect")
+        .data(rectData)
+        .enter().append("rect")
+            .attr({
+                "class": "sorted",
+                "id": function(d) { return "sorted_" + d.index;}, 
+                "x": 0,
+                "y": x(0),
+                "height": rectHeight,
+                "width": rectWidth
+            })
+            .style("fill-opacity", function(d) { return d.value/n })
+            .transition().duration(duration)
+            .attr("x", function(d) {return x(d.index)})
+
+    setTimeout(function() { sortedRects(); }, duration * 1);
+
+    function sortedRects() {
+        
+        for (i=0; i<n; i++) {
+            d3.selectAll("#sorted_" + i)
+                .transition().duration(duration)
+                .ease("quad-in")
+                .attr("y", 10)
+                .transition().duration(duration * 1.5)
+                .ease("quad-out")
+                .attr("x", function(d) {return x(d.value)})
+                .attr("y", 60)
+        }
+        
+        setTimeout(function() {returnRects()}, duration * 2.5);
+
+    }
+
+    function returnRects() {
+
+        for(i=0; i<n; i++) {
+            d3.select("#sorted_" + i)
+                .transition().duration(duration)
+                .attr("x", function(d) {return x(d.index)})
+                .attr("y", 0)
+        }
+
+        setTimeout(function() { shuffleRects(); }, duration * 1.5);
+
+    }
+
+
+    function shuffleRects() {
+
+        array = d3.shuffle(array)
+
+        for (i=0; i<array.length; i++) {
+
+            d3.select("#sorted_" + i).data()[0].index = array[i]
+            d3.select("#orig_" + i).data()[0].index = array[i]
+            
+            d3.select("#sorted_" + i)
+                .transition().duration(duration)
+                .attr("x", function(d) { return x(d.index) })
+
+            d3.select("#orig_" + i)
+                .transition().duration(duration)
+                .attr("x", function(d) { return x(d.index) })
+
+        }
+
+        setTimeout(function() { sortedRects(); }, duration * 1);
+       
+    }
+
+</script>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css"/>
+
+	<script src="//d3js.org/d3.v4.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+
+  <script src="data.js"></script>
+	<script src="fireStations.js"></script>
+	<style>
+		polygon {stroke: black; stroke-width: 1; fill: red;}
+		polygon:hover {stroke: blue; stroke-width: 2;}
+    path {stroke-width: 2;fill: none;}
+	</style>
+</head>
+<body>
+	<div id="map"></div>
+	<div id="chart"></div>
+</body>
+<script>
+  var width = 960,
+      height = 500,
+      chartMargin = {top: 10, bottom: 30},
+      chartHeight = 110 - chartMargin.bottom - chartMargin.top;
+
+  d3.select("#map")
+      .style("width", width + "px")
+      .style("height", (height - 100) + "px")
+
+  var chart = d3.select("#chart").append("svg")
+      .attr("width", width)
+      .attr("height", chartHeight + chartMargin.top + chartMargin.bottom)
+    .append("g")
+      .attr("transform", "translate(0," + chartMargin.top + ")");
+
+  var map = L.map("map")
+      .setView([37.77, -122.42], 12)
+      .on("viewreset", updateNeighborhoodShapes);
+
+  L.tileLayer("http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png", {
+      attribution: "Map tiles by <a href='http://stamen.com'>Stamen Design</a>, <a href='http://creativecommons.org/licenses/by/3.0'>CC BY 3.0</a> &mdash; Map data &copy; <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
+      minZoom: 12
+  }).addTo(map)
+
+  //initialize the SVG layer 
+  map._initPathRoot() 
+
+  var years = d3.values(dataSet)
+
+  var yearData = d3.nest()
+      .key(function(d) {return d.Year})
+      .rollup(function(d) {
+        return d3.sum(d, function(p) {return p.FalseAlarms})/d3.sum(d, function(p) {return p.CountAll});
+      })
+      .entries(years)
+
+  var activeNeighborhood;
+
+  var yearFilter = d3.extent(years, function(d) {return d.Year});
+  var yearWidth = width/yearData.length; 
+
+  var fillScale = d3.scaleLinear().range([0,1]);
+  var x = d3.scaleLinear().range([0, width]).domain([yearFilter[0], ++yearFilter[1]]);        
+  var y = d3.scaleLinear().range([chartHeight,chartHeight * .2]).domain([0,.15]);
+
+  //get the neighborhood shape data while everything else renders
+  d3.json("xfcw-9evu.json", function(error, shapeData) {
+    d3.select("#map").select("svg")
+      .selectAll("g")
+        .data(shapeData)
+      .enter().append("g")
+        .attr("id", function(d) {return d.nhood.replace(/[/ \\]/g, "")})
+        .selectAll("polygon")
+        .data(function(d) {return d.the_geom.coordinates})
+      .enter().append("polygon")
+        .attr("class", "shapes")
+
+    d3.select("#map").select("svg")
+      .selectAll("circle")
+        .data(fireStations)
+      .enter().append("circle")
+        .attr("class", "fireStation")
+        .style("fill", "blue")
+        .style("stroke", "black")
+        .attr("r", 3)
+        .attr("cx", function(d) {return map.latLngToLayerPoint({lat: d[0],lng: d[1]}).x})
+        .attr("cy", function(d) {return map.latLngToLayerPoint({lat: d[0],lng: d[1]}).y})
+
+    updateNeighborhoodShapes();
+    updateNeighborhoodFills();
+  });    
+
+
+
+  loadChart();
+
+  function loadChart() {
+    chart.append("path")
+        .data([yearData])
+        .attr("id", "cityLine")
+        .style("stroke", "red")
+        .attr("d", d3.line().x(function(d) { return x(+d.key) + yearWidth/2; })
+                            .y(function(d) { return y(d.value); })
+                            .curve(d3.curveCatmullRom.alpha(0.5)));
+
+    chart.append("path")
+        .attr("id", "neighborhoodLine")
+        .style("stroke", "blue")
+        
+    chart.selectAll("text")
+        .data(yearData)
+      .enter().append("text")
+        .style("stroke", "black")
+        .attr("x", function(d) {return x(d.key) + yearWidth/2})
+        .attr("y", chartHeight + 20)
+        .attr("text-anchor", "middle")
+        .text(function(d) {return d.key})
+
+    chart.append("text")
+        .attr("id", "cityText")
+        .style("fill", "red")
+        .attr("x", 0)
+        .attr("y", 10)
+        .attr("text-anchor", "start")
+
+    chart.append("text")
+        .attr("id", "yearText")
+        .style("stroke", "black")
+        .attr("x", width/2)
+        .attr("y", 10)
+        .attr("text-anchor", "middle")
+
+    chart.append("text")
+        .attr("id", "neighborhoodText")
+        .style("fill", "blue")
+        .attr("x", width)
+        .attr("y", 10)
+        .attr("text-anchor", "end")
+
+    chart.append("g")
+        .attr("class", "brush")
+        .call(d3.brushX()
+                .extent([[0, chartHeight * .15], [width, chartHeight + 25]])
+                .on("brush", brushed)
+                .on("end", brushended))
+  }
+
+  function brushed() {
+    var span = d3.event.selection.map(x.invert);      
+    yearFilter = span.map(Math.round); 
+    if (yearFilter[0] >= yearFilter[1]) {yearFilter = [Math.floor(span[0]), Math.floor(span[0]) + 1];}
+    updateNeighborhoodFills();
+  }
+
+  //on brush end, snap the brush to the closest year, or minimum of one year if extent < 1 year
+  function brushended() {
+    if (!d3.event.sourceEvent) return;
+    d3.select(this).transition().call(d3.event.target.move, [x(yearFilter[0]),x(yearFilter[1])]);
+  }
+
+  function updateNeighborhoodShapes() {
+    d3.selectAll(".shapes").attr("points", function(d) { 
+      var projected = []
+      d[0].forEach(function(p, i) {
+        var thisPoint = map.latLngToLayerPoint({lat: p[1],lng: p[0]})
+        projected[i] = [thisPoint.x, thisPoint.y]
+      })
+      return projected;
+    })
+    d3.selectAll(".fireStation")
+        .attr("cx", function(d) {return map.latLngToLayerPoint({lat: d[0],lng: d[1]}).x})
+        .attr("cy", function(d) {return map.latLngToLayerPoint({lat: d[0],lng: d[1]}).y})
+  }
+
+  function updateNeighborhoodFills() {
+    var filteredData = d3.nest()
+	      .key(function(d) {return d.NeighborhoodDistrict})
+				.rollup(function(d) {
+          return {"totalCalls": d3.sum(d, function(p) {return p.CountAll}),
+                  "totalFalse": d3.sum(d, function(p) {return p.FalseAlarms})}
+				})
+	      .entries(years.filter(function(d) {return d.Year >= +yearFilter[0] && d.Year <= +yearFilter[1]}))
+
+    fillScale.domain(d3.extent(filteredData, function(d) {return d.value.totalFalse/d.value.totalCalls}))
+
+    filteredData.forEach(function(d) {
+      d3.selectAll("#" + d.key.replace(/[/ \\]/g, ""))
+      		.selectAll("polygon")
+          .style("fill-opacity", fillScale(d.value.totalFalse/d.value.totalCalls))
+          .on("mouseover", function() {
+            activeNeighborhood = d.key;
+
+			      d3.select("#neighborhoodText").text(activeNeighborhood.replace(/[\\]/g, "") + ": " + d3.format(",")(d.value.totalCalls) + " calls, " + d3.format(".2%")(d.value.totalFalse/d.value.totalCalls) + " False Alarms ")
+
+            d3.select("#neighborhoodLine")
+              .data([years.filter(function(p) {return p.NeighborhoodDistrict === activeNeighborhood})])
+              .attr("d", d3.line().x(function(p) { return x(p.Year) + yearWidth/2; })
+                                  .y(function(p) { return y(p.FalseAlarms/p.CountAll);})
+                                  .curve(d3.curveCatmullRom.alpha(0.5)))
+          })
+    })
+
+    var totalCalls = d3.sum(filteredData, function(d) {return d.value.totalCalls});
+    var totalFalse = d3.sum(filteredData, function(d) {return d.value.totalFalse});
+    
+    d3.select("#yearText")
+        .text(yearFilter[0] + " - " + (yearFilter[1] - 1));
+
+    d3.select("#cityText")
+        .text("City total: " + d3.format(",")(totalCalls) + " calls, " + d3.format(".2%")(totalFalse/totalCalls) + " False Alarms ");
+    
+    d3.select("#neighborhoodText")
+        .data(filteredData.filter(function(d) {return d.key === activeNeighborhood}))
+        .text(function(d) {return d.key.replace(/[\\]/g, "") + ": " + d3.format(",")(d.value.totalCalls) + " calls, " + d3.format(".2%")(d.value.totalFalse/d.value.totalCalls) + " False Alarms "});
+  }
+</script>

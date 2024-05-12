@@ -1,0 +1,7 @@
+This is an attempt at an algorithm that finds clusters of even quantity. It's draws from k-means style clustering and Lloyd's algorithm, but points also get traded among adjacent clusters based on their difference. The 1,000 points are purposely placed unevenly using d3.RandomNormal and the centroids are randomly selected from those points. 
+
+The process automatically stops if a cycle's ending deviation equals zero. Otherwise it continues until the ending deviation stays the same for a few cycles, so that it doesn't get caught in an infinite loop.
+
+There is no real significance to the number of clusters, but you can play around with that by opening this in <a href="http://blockbuilder.org/alexmacy/8592b0852145ea2808be88f673a41a55" target="_blank">Blockbuilder</a> and editing the value for k. Keep in mind that the process takes much longer when k gets higher, because it has to iterate through so many more adjacencies.
+
+The idea for this came from wanting to find a way to draw a voronoi diagram on top of random dots in such a way that each polygon would have the same quantity. That first experiment can be found <a href="http://bl.ocks.org/alexmacy/3986db72dc4b81db8e788dd837ee6e3b" target="_blank">here</a>. One next step could be to re-draw the borders for the contiguous United States so that they all have equal populations.

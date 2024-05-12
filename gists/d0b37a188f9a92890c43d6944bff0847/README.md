@@ -1,0 +1,3 @@
+This listens to your computer's microphone and draws the contents of the audio buffer as a series of ellipses that are rotated based upon the audio sample's position in the buffer. The difference between this one and <a href='http://bl.ocks.org/alexmacy/455d69e7617c0c7c60ba3b55fedb21e2'>v1</a> is that v1 has a sort of threshold so that it only shows values above a certain level. To compensate, the line on v2 is 1/10 the width.
+
+This was made as part of a series exploring the visualization of audio that was presented at a d3.oakland. A big list of the demos from this series can be found <a href="https://alexmacy.github.io/d3.oakland" target="_blank">here</a>.

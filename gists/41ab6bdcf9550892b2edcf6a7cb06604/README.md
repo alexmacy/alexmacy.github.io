@@ -1,0 +1,1 @@
+This is some exploration of Rhodonea curves (a.k.a rose curves). Also see what Jason Davies did <a href="https://www.jasondavies.com/rhodonea/" target="_blank">here</a>.

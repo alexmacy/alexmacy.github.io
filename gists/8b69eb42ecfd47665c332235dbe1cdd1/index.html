@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>opd_lpd_leaflet</title>
+    <meta charset="UTF-8">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css"/>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.7/d3-tip.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', 'sans-serif';
+            line-height: 30px;
+        }
+
+        #map {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .side-container {
+            position: absolute;
+            z-index: 5;
+            width: 8%;
+            max-height: 83%;
+            margin-top: 6%;
+            padding: 5px;
+            border: 1px solid black;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, .9);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .count-container {
+            position: absolute;
+            z-index: 5;
+            width:20%; 
+            margin-top: 10px;
+            margin-left: 40%;
+            padding: 5px;
+            border: 1px solid black;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, .9);
+        }
+
+        .selected {
+            background-color: lightblue;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .hovered {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .d3-tip {
+            line-height: 1;
+            padding: 12px;
+            background: rgba(10, 10, 10, 0.9);
+            color: #fff;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <div id="master-list-container" class="side-container" style="left:10px;visibility:hidden;text-align:left;">
+        <div id="master-list"></div>
+    </div>
+    
+    <div id="compare-list-container" class="side-container" style="right:10px;visibility:hidden;text-align:right;">
+        <div id="compare-list"></div>
+    </div>
+    
+    <div id="count-container" class="count-container" style="visibility:hidden">
+        <span class="col-sm-8" id="count-span" style="text-align: right">
+            <span id="count"></span> of <span id="count-total"></span> events visible
+        <button class="col-sm-9" type="button" onclick="showAllMarkers();" style="float:right;margin-top" >Show All</button>
+    </div>
+
+</body>
+
+<script>    
+
+    //to store the data imported by d3.json
+	var scanData = [],
+        map,
+        g,markerCount;
+
+    loadMap();
+    loadData();
+
+    function loadMap() {
+        map = L.map('map').setView([37.80, -122.22], 12);
+
+        var Stamen_TonerLite = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            minZoom: 11,
+            maxZoom: 16
+        });
+
+        Stamen_TonerLite.addTo(map)
+
+        //initialize the SVG layer 
+        map._initPathRoot()  
+
+        //re-size/re-position the markers when the map is zoomed or moved
+        map.on("viewreset", updateSVGMarkers)
+    }
+
+    function loadData() {     
+        d3.json('opd_lpd.json', function(error, jsonData) {
+
+            scanData = jsonData;
+
+            loadD3Markers();
+            updateSVGMarkers();
+            loadMasterList();
+        })
+    };
+
+    function loadD3Markers() {
+
+        //create a 'g' element for each license
+        d3.select("#map").select("svg").selectAll('g')
+            .data(scanData)
+                .enter().append('g')
+                //attach the license to the parent as a class for faster selecting when showing/hiding
+                .attr('class', function(d) { return 'lp' + d.license })
+                //create a 'path' marker for each location associated with the license plate
+                .selectAll('path')
+            .data(function(d) { return d.locations;})
+                .enter().append('path')
+                .attr('d', 'M04 16 S14 0 4 00 S4 16 4 16')
+                .style("stroke", "black")  
+                .style("stroke-width", "1")  
+                .style("fill-opacity", .6) 
+                .style("fill", "red")
+                .classed('shown', true)
+                .style('cursor', 'pointer')
+                .call(markerTip)
+                //on click, display only this license's markers and scroll the master list until it is displayed
+                .on('click', function() {
+                    var thisLicense = d3.select(this.parentNode).data()[0].license;
+                    
+                    //deselect anything currently selected in the lists
+                    d3.selectAll('.selected').classed('selected', false);
+
+                    //set this license as 'selected'
+                    d3.select('#ml_' + thisLicense).classed('selected', true);
+
+                    //hide all currently displayed markers
+                    d3.selectAll('.shown')
+                        .style('visibility','hidden')
+                        .classed('shown', false);
+
+                    //select and display markers associated with this license plate
+                    d3.selectAll('.lp' + thisLicense).selectAll('*')
+                        .style('visibility', 'visible')
+                        .style('fill', 'red')
+                        .classed('shown', true)
+
+                    //scroll to specified license plate
+                    d3.select('#master-list-container').transition().duration(3000).ease('cubic-in-out')
+                        .tween("uniquetweenname", scrollList(d3.select('#ml_' + thisLicense)[0][0]))
+                        .each("end", loadCompareList(d3.select('#ml_' + thisLicense).data()[0]));
+                })
+                .on('mouseover', markerTip.show)
+                .on('mouseout', markerTip.hide);  
+
+        //count the markers for the total to be displayed in the count-container
+        d3.select('#count-total').html(d3.selectAll('path')[0].length);
+
+    }
+
+    function updateSVGMarkers() {
+        //reposition the markers to their locations in relation to the map tiles
+        d3.selectAll('path')
+            .attr("transform", function(d) { 
+                return "translate("+ 
+                    map.latLngToLayerPoint(new L.LatLng(d.split(',')[0],d.split(',')[1])).x +","+ 
+                    map.latLngToLayerPoint(new L.LatLng(d.split(',')[0],d.split(',')[1])).y +")";
+                });  
+    }
+
+    function loadMasterList() {
+        //load the list for the container on the left side, sorted by number of scans
+        d3.select('#master-list').selectAll('div')
+            .data(_.sortBy(scanData, function(d) {return d.count}).reverse())
+                .enter().append('div')
+                .style('cursor', 'pointer')
+                //set the id for easy finding when automating the scroll
+                .attr('id', function(d) {return 'ml_' + d.license})
+                .html(function(d) {return d.license})
+                .on('mouseover', function(d) {
+ 
+                    //if no line has been selected (highlighted): 
+                        //hide all but the associated markers
+                        //load list of the most similar license plates
+                        //update the count at the top of the window
+
+                    if (!d3.select("#master-list").selectAll('.selected')[0].length) {
+                        d3.selectAll('.shown')
+                            .style('visibility','hidden')
+                            .classed('shown', false);
+ 
+                        d3.selectAll('.lp' + d.license).selectAll('*')
+                            .style('visibility', 'visible')
+                            .style('fill', 'red')
+                            .classed('shown', true)
+
+                        loadCompareList(d)
+                        
+                        updateCount();
+                    }
+
+                    //zoom on the line in the list, regardless of other lines being selected 
+                    d3.select(this).classed('hovered', true);
+                })
+                .on('mouseout', function() {
+                    //if the line is not selected (highlighted):
+                    if (!d3.select(this).classed('selected')) {
+                        d3.select(this).classed('hovered', false)
+                    }
+                })
+                .on('click', function(d) {
+                    var thisRow = d3.select(this);
+
+                    //toggle the selection, only one can be selected at a time
+                    if (thisRow.classed('selected')) {
+                        thisRow.classed('selected', false)
+                        showAllMarkers(); 
+                    } else {
+                        d3.select('#master-list').selectAll('.selected').classed('selected', false);
+
+                        //the rest of this acts like a mouseover event, but lasts until deselected
+                        d3.selectAll('.hovered').classed('hovered', false)
+                        thisRow.classed('selected', true);
+
+                        loadCompareList(d);
+                        
+                        d3.selectAll('.shown')
+                            .style('visibility', 'hidden')
+                            .classed('shown', false);
+                        
+                        d3.selectAll('.lp' + d.license).selectAll('*')
+                            .style('visibility', 'visible')
+                            .style('fill', 'red')
+                            .classed('shown', true);
+                    }
+
+                    updateCount();
+                })  
+
+        //un-hide the master list and count containers
+        d3.select('#master-list-container').style('visibility', 'visible');
+        d3.select('#count-container').style('visibility', 'visible');
+
+        updateCount();
+    }
+
+    function loadCompareList(A) {
+
+        //check if the similarities have already been calculated
+            //this is processed per select or hovered license ('A') on an as-needed basis
+            //this saves time and space instead of processing through the whole list on the original load
+            //the result is stored in the object so it only needs to be done once per license
+        if (!A.similarities) {
+            A.similarities = [];
+            //it then compares the scans for each license and returns the 30 most similar licenses, sorted by similarity
+            scanData.forEach(function(B, i) {
+                if (A.license != B.license) {
+                    var locationsA = _.uniq(A.locations.map(function(d) {
+                        return [d3.round(+d.split(',')[0],2), d3.round(+d.split(',')[1],2)].join()}));
+                    var locationsB = _.uniq(B.locations.map(function(d) {
+                        return [d3.round(+d.split(',')[0],2), d3.round(+d.split(',')[1],2)].join()}));
+                    //count the common locations and divide by the combined number of locations
+                    var thisSimVal = _.intersection(locationsA,locationsB).length/(locationsA.length + locationsB.length);
+
+                    A.similarities.push({
+                        "license": B.license,
+                        "value":thisSimVal, 
+                    });
+                };
+            })
+            A.similarities = _.sortBy(A.similarities, function(d) {return d.value}).reverse().slice(0,30)
+        };
+
+        //remove any previously loaded list and replace with the new one
+        d3.select('#compare-list').selectAll('div').remove();
+
+        //the mouse events are like the master list, but multiple lines can be selected and the markers are blue
+        d3.select('#compare-list').selectAll('div')
+            .data(A.similarities)
+                .enter().append('div')
+                .html(function(d) {return d.license})
+                .on('mouseover', function(d) {
+                    console.log(d3.format('%%')(d.value));
+                    d3.select(this).classed('hovered', true);
+                    d3.selectAll('.lp' + d.license).selectAll('*')
+                        .style('visibility', 'visible')
+                        .style('fill', 'steelblue')
+                        .classed('shown', true);
+                    
+                    updateCount();
+                })
+                .on('mouseout', function(d) {
+                    if (!d3.select(this).classed('selected')) {
+                        d3.select(this).classed('hovered', false);
+                        d3.selectAll('.lp' + d.license).selectAll('*')
+                            .style('fill', 'red')
+                            .style('visibility', 'hidden')
+                            .classed('shown', false);
+                    } 
+                    updateCount();
+                })
+                .on('click', function() {
+                    d3.select(this).classed('selected', !d3.select(this).classed('selected'));
+                })
+
+        d3.select('#compare-list-container').style('visibility', 'visible');
+    }
+
+    function updateCount() {
+        //load a running count of the displayed markers by counting all the markers currently visible
+        var shown = d3.selectAll('.shown')[0].length;
+        d3.select('#count').html(shown);
+    }
+
+    function showAllMarkers() {
+        //reset the view to show all markers, deselect anything from the lists, and hide the compare list
+        d3.selectAll('path')
+            .style('fill', 'red')
+            .style('visibility', 'visible')
+            .classed('shown', true);
+
+        d3.selectAll('.selected').classed('selected', false);
+        
+        d3.select('#compare-list-container').style('visibility', 'hidden');
+        
+        d3.select('#compare-list-container').select('#compare-list').selectAll('*').remove();
+
+        updateCount();
+    }
+
+    function scrollList(destinationLine) { 
+        //scroll the master list to the selected license plate
+        var scrollTop = destinationLine.offsetTop;
+        var listHeight = document.getElementById('master-list-container').clientHeight
+        return function() { 
+            var i = d3.interpolateNumber(this.scrollTop, scrollTop - (listHeight/2)); 
+            return function(t) { 
+                this.scrollTop = i(t); 
+            }; 
+        }; 
+    } 
+
+    //tooltip for markers
+    var markerTip = d3.tip()
+          .attr('class', 'd3-tip')
+          .offset([-10, 0])
+          .html(function (d) {return d3.select(this.parentNode).data()[0].license;});
+
+    </script>
+</html>

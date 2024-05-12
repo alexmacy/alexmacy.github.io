@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+	<style>
+		polygon {
+			fill: #ccc;
+			stroke: #000;
+		}
+		.small:hover {
+			fill-opacity: .5;
+		}
+	</style>
+	
+	<script src="//d3js.org/d3.v4.min.js"></script>
+	<script src="california.js"></script>
+	<script src="shapes.js"></script>
+</head>
+<body></body>
+<script>
+
+	var width = 960,
+			selectHeight = 100,
+			selectShapeWidth = width/(shapes.length + 1),
+	    height = 500 - selectHeight;
+
+	var selectSvg = d3.select("body").append("svg")
+		.style("width", width)
+		.style("height", selectHeight);
+
+	var selectContainer = selectSvg.append("g")
+		.attr("transform", "translate(50,0)");
+
+	selectContainer.selectAll("g")
+		.data(shapes)
+	  .enter().append("g")
+		.attr("transform", function(d, i) {return "translate(" + i * selectShapeWidth + ", " + selectHeight/2 + ")"})
+		.append("path")
+			.attr("class", "small")
+			.attr("d", d3.line())
+			.attr("transform", "translate(0,0)scale(.2)")
+			.on("click", function(d, i) {loop(i)});
+
+	selectContainer.append("g")
+		.attr("transform", "translate(" + (width - selectShapeWidth) + ", " + selectHeight/2 + ")")
+		.datum(californiaShape)
+		.append("path")
+			.attr("class", "small")
+			.attr("d", d3.line())
+			.attr("transform", "translate(0,0)scale(.2)")
+			.on("click", function(d, i) {
+    		shape.transition().duration(1000)
+          .attr("points", californiaShape)
+          .transition().delay(1000)
+          .on("end", function() {loop(0)})
+  		});
+
+
+	var mainSvg = d3.select("body").append("svg")
+  	.attr("width", width)
+  	.attr("height", height)
+  	.attr("transform", "translate(0," + selectHeight + ")");
+
+  var shape = mainSvg.append("polygon")
+		.attr("id","state")
+		.attr("transform", "translate(" + width/2 + ", " + height/2 + ")");
+
+	var hiddenShape = mainSvg.append("path")
+		.attr("id", "hiddenShape")
+		.style("visibility", "hidden");
+
+  shape.transition().duration(1000)
+		.attr("points", californiaShape)
+		.transition().delay(1000)
+		.on("end", function() {loop(0)});
+
+
+	function loop(i) {
+    shape
+      .transition().duration(2000)
+      	.attr("points", morph(californiaShape, shapes[i]))
+      .transition().delay(1500).duration(2000)
+      	.attr("points", californiaShape)
+      .transition().delay(500)
+      	.on("end", function() {
+      		(i < shapes.length - 1) ? loop(++i) : loop(0);
+    		});
+  }
+
+
+
+	function morph(oldShape, newShape) {
+    
+    //start with finding the closest point of the new shape to the starting point of the original shape, rotating the array to make the starting points of the two shapes as close as possible.
+    var closestDist = calcDistance(newShape[0], oldShape[0]),
+        closestPoint,
+  			tempArray = [];
+
+    for (i in newShape) {
+      tempArray.push(newShape[i]);
+			var thisDist = calcDistance(newShape[i], oldShape[0]);
+      if (closestDist > thisDist) {
+        closestDist = thisDist;
+        closestPoint = i;
+      }
+    }
+
+    newShape = tempArray.splice(closestPoint).concat(tempArray);
+
+		var distances = getDistances(oldShape),
+				totalLength = d3.max(getDistances(newShape)),
+				coordsScale = d3.scaleLinear().range([0,1]).domain([0,d3.max(distances)])
+				
+		hiddenShape.datum(newShape).attr("d", d3.line());
+		
+		for (i in oldShape) { 
+			var newPoint = document
+				.getElementById("hiddenShape")
+				.getPointAtLength(coordsScale(distances[i]) * totalLength);
+			newShape[i] = [newPoint.x, newPoint.y];
+		}
+
+    //check the rotational direction by calculating the polygon's area. reverse the array of points if needed.
+    return d3.polygonArea(newShape) < 0 ? newShape : newShape.reverse();
+
+		//get distances along the perimeter for plotting the points proportionally
+		function getDistances(coordsArray) {
+			var distances = [0];
+			for (i=1; i<coordsArray.length; i++) {
+				distances[i] = distances[i-1] + calcDistance(coordsArray[i-1], coordsArray[i]);
+			}
+			return distances;
+		}   
+
+		//convenience function for calculating distance between two points
+		function calcDistance(coord1, coord2) {
+			var distX = coord2[0] - coord1[0];
+			var distY = coord2[1] - coord1[1];
+			return Math.sqrt(distX * distX + distY * distY);
+		}
+	}
+	
+</script>

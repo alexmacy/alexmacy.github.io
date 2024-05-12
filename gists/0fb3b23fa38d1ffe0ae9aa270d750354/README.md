@@ -1,0 +1,3 @@
+This listens to your computer's microphone and draws the contents of the audio buffer as a radial line. Also made a bright version: <a href='http://bl.ocks.org/alexmacy/a39e1e54f68c45b5e1bb5b27c78908db'>Audio Radial Line - bright</a>
+
+This is part of a series exploring the visualization of audio that was presented at a d3.oakland meetup. A big list of the demos from this series can be found <a href="https://alexmacy.github.io/d3.oakland" target="_blank">here</a>.

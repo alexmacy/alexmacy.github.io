@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+	<style>
+		polygon {
+			fill: darkgreen;
+			fill-opacity: .7;
+			stroke: #000;
+		}
+		.flipped {
+			fill: steelblue;
+		}
+		button {
+			position: absolute;
+			top:325px;
+			left:775px;
+			border: 1px solid black;
+			border-radius: 5px;
+			font-size: 1em;
+			background-color: white;
+		}
+	</style>
+	<script src="//d3js.org/d3.v4.min.js"></script>
+	<script src="states_big.js"></script>
+</head>
+<body>
+	<button onclick="spin()">Reset</button>
+</body>
+<script>
+
+	var width = 960,
+      height = 450;
+
+	var projection = d3.geoAlbersUsa()
+		.translate([width/2, height/2])
+		.scale([900]);
+
+	var svg = d3.select("body").append("svg")
+		.attr("width", width)
+		.attr("height", height);
+
+	stateData.forEach(function(d) {
+		if (d.geometry.type == "MultiPolygon") {  
+			var joinedCoords = []
+			for (i in d.geometry.coordinates) {joinedCoords.push(...d.geometry.coordinates[i])}
+			d.center = projection(d3.polygonCentroid(joinedCoords))
+			d.centered = []
+			for (i in d.geometry.coordinates) {
+				d.centered[i] = []
+				d.geometry.coordinates[i].forEach(function(p) {
+					d.centered[i].push([projection(p)[0] - d.center[0], projection(p)[1] - d.center[1]])
+				})
+			}
+		} else {
+			d.center = projection(d3.polygonCentroid(d.geometry.coordinates[0]))
+			d.centered = []
+			d.geometry.coordinates[0].forEach(function(p) {
+				d.centered.push([projection(p)[0] - d.center[0], projection(p)[1] - d.center[1]])
+			})
+		}
+	})
+
+	var states = svg.selectAll("g")
+		.data(stateData)
+	 .enter().append("g")
+		.attr("id", function(d) {return d.name})
+		.on("mouseover", flipOne)
+		
+	states.each(function(p) {
+		if (p.geometry.type == "MultiPolygon") {  
+			d3.select(this).selectAll("polygon")
+				.data(p.centered)
+			 .enter().append("polygon")
+				.datum(function(d, i) {return {centered: p.centered[i], center: p.center}})
+				.attr("points", function(d) {return d.centered})
+				.attr("transform", function(d) {return "translate(" + d.center + ")"})
+		} else {                
+			d3.select(this).append("polygon")
+				.datum({centered: p.centered, center: p.center})
+				.attr("points", p.centered)
+				.attr("transform", "translate(" + p.center + ")")
+		}
+	})
+
+	function flipOne() {
+		var thisState = this;
+		d3.select(thisState).on("mouseover", null)
+			.selectAll("polygon")
+				.attr("points", function(d) {
+					var newCoords = [];
+					for (i=0; i<d.centered.length; i++) {newCoords[i] = [d.centered[i][0] * -1, d.centered[i][1]]}      
+					return newCoords;     
+				})
+				.classed("flipped", function() {return !d3.select(this).classed("flipped")})
+				.transition().duration(250).ease(d3.easeLinear)
+					.attr("points", function(d) {return d.centered})
+					.on("end", function() {d3.select(thisState).on("mouseover", flipOne)})
+	}
+
+	function spin() {
+		states.each(function(p) {
+			var thisState = this;
+			d3.select(thisState).on("mouseover", null)
+				.selectAll("polygon")
+				.transition().duration(450).ease(d3.easeQuadIn)
+					.attr("transform", function(d) {return "translate(" + d.center + ")rotate(120)scale(.5)"})
+				.transition().duration(100).ease(d3.easeLinear)
+					.attr("transform", function(d) {return "translate(" + d.center + ")rotate(240)scale(.5)"})
+				.transition().duration(100).ease(d3.easeLinear)
+					.attr("transform", function(d) {return "translate(" + d.center + ")rotate(360)scale(.5)"})
+				.transition().duration(100).ease(d3.easeLinear)
+					.attr("transform", function(d) {return "translate(" + d.center + ")rotate(120)scale(.5)"})
+				.transition().duration(100).ease(d3.easeLinear)
+					.attr("transform", function(d) {return "translate(" + d.center + ")rotate(240)scale(.5)"})
+				.transition().duration(450).ease(d3.easeQuadOut)
+					.attr("transform", function(d) {return "translate(" + d.center + ")rotate(360)scale(1)"})
+					.attr("class",null)
+					.on("end", function() {d3.select(thisState).on("mouseover", flipOne)})
+		})
+	}    
+</script>

@@ -1,0 +1,1 @@
+A riff on <a href='http://bl.ocks.org/mbostock/'>mbostock</a>'s block: <a href='http://bl.ocks.org/mbostock/d1d81455dc21e10f742f'>Voronoi Circles</a>. I updated it to d3 v4, ported it to SVG, and added the ability to drag the polygons.
