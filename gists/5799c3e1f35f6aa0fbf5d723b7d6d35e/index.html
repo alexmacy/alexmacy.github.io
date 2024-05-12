@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0px; 
+      overflow:hidden;
+    } 
+    div {
+      margin-left: 10px;
+    }   
+    path {
+      fill: none;
+      stroke: black;
+      stroke-width: 1;
+    }
+    svg {
+      border: 1px solid steelblue;
+      margin: 10px;
+    }
+  </style>
+  <script src="//d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+  <svg></svg>
+  <div>
+    <select id="wave-select1" class="wave-select"></select>
+    <select id="wave-select2" class="wave-select"></select>
+    <select id="speed-select"></select>
+    <button id="stop-start" onclick="playing ? stopSound() : phase()">start</button>
+    Mute: <input type="checkbox" onchange="muteSound()" checked/>
+  </div>
+</body>
+<script>
+
+  var width = Math.max(940, innerWidth-20),
+        height = Math.max(450, innerHeight-60);
+
+  var playing = false;
+  var source;
+  var timer;
+
+  var audioCtx = new (window.AudioContext || window.webkitAudioContext)(),
+      gainNode = audioCtx.createGain(),
+      sampleRate = 44100,
+      frequency = 440,
+      waveCycles = 4,
+      samples = sampleRate / frequency;
+
+  var eases = [
+    "easeLinear", 
+    "easePolyIn", "easePolyOut", "easePolyInOut", 
+    "easeQuadIn", "easeQuadOut", "easeQuadInOut", 
+    "easeCubicIn", "easeCubicOut", "easeCubicInOut", 
+    "easeSinIn", "easeSinOut", "easeSinInOut", 
+    "easeExpIn", "easeExpOut", "easeExpInOut", 
+    "easeCircleIn", "easeCircleOut", "easeCircleInOut", 
+    "easeElasticIn", "easeElasticOut", "easeElasticInOut", 
+    "easeBackIn", "easeBackOut", "easeBackInOut", 
+    "easeBounceIn", "easeBounceOut", "easeBounceInOut"
+    ];
+
+  d3.selectAll(".wave-select").selectAll("option")
+      .data(eases)
+    .enter().append("option")
+      .attr("value", function (d) {return d})
+      .text(function (d) {return d});
+
+  d3.select("#speed-select").selectAll("option")
+      .data(d3.range(1, 20))
+    .enter().append("option")
+      .attr("value", function (d) {return d})
+      .text(function (d) {return d});
+
+  d3.selectAll("select")
+      .on("change", function () {if (playing) phase()});
+
+  var buffer = audioCtx.createBuffer(2, samples * waveCycles, sampleRate);
+
+  var svg = d3.select("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+  var x = d3.scaleLinear()
+      .range([0, width])
+      .domain([samples * .25, buffer.length - samples * .75]);
+
+  var y = d3.scaleLinear()
+      .range([height - 60, 60])
+      .domain([-1, 1]);
+
+  var wave = d3.line()
+      .curve(d3.curveMonotoneX)
+      .x(function (d, i) {return x(i)})
+      .y(function (d) {return y(d)});
+
+  var waveShape1 = svg.append("path")
+      .datum([])
+      .attr("stroke-dasharray", [5, 5])
+      .attr("stroke", "#e9e9e9")
+      .attr("d", wave);
+
+  var waveShape2 = svg.append("path")
+      .datum([])
+      .attr("stroke-dasharray", [5, 5])
+      .attr("stroke", "#e9e9e9")
+      .attr("d", wave);
+
+  var mainWave = svg.append("path")
+      .datum([])
+      .style("stroke", "red")
+      .style("stroke-width", 2)
+      .attr("d", wave);
+
+  var position = svg.append("circle")
+      .attr("r", 5);
+
+  phase();
+
+  function loadAudio() {
+    var offset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+    var ease1 = d3.select("#wave-select1").property("value");
+    var ease2 = d3.select("#wave-select2").property("value");
+
+    var combined = new Float32Array(buffer.length),
+        buffer1 = new Float32Array(buffer.length),
+        buffer2 = new Float32Array(buffer.length);
+
+    for (i = 0; i < buffer.length; i++) {
+      var thisVal = Math.abs((i + samples / 4) % samples / (samples / 2) - 1),
+          thisVal2 = Math.abs((i + offset + samples / 4) % samples / (samples / 2) - 1);
+
+      var eased = (d3[ease1](thisVal) - .5) * 2,
+          eased2 = (d3[ease2](thisVal2) - .5) * 2;
+
+      buffer.getChannelData(1)[i] = eased;
+      buffer.getChannelData(0)[i] = eased2;
+    } 
+
+    combined = combined.map(function (d, i) {
+      return (buffer.getChannelData(0)[i] + buffer.getChannelData(1)[i]) / 2;
+    });
+
+    waveShape1.datum(buffer.getChannelData(0)).attr("d", wave);
+    waveShape2.datum(buffer.getChannelData(1)).attr("d", wave);
+    mainWave.datum(combined).attr("d", wave);
+
+    position.attr("cx", function (d) {return x(buffer.length >> 1)})
+        .attr("cy", function (d) {return y(combined[buffer.length >> 1])});
+
+    if (playing == false) playSound();
+  }
+
+  function phase() {
+    var t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+    if (playing) stopSound();
+    d3.select("#stop-start").text("stop");
+    var step = d3.select("#speed-select").property("value");
+
+    timer = d3.timer(function () {
+        t = t >= samples ? 0 : t;
+        loadAudio(t += +step);
+      }, 1);
+  }
+
+  function playSound() {
+    if (playing) stopSound();
+    playing = true;
+    source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    source.loop = true;
+    muteSound();
+    source.start();
+  }
+
+  function stopSound() {
+    timer.stop();
+    playing = false;
+    if (source) source.stop();
+    muteSound();
+    d3.select("#stop-start").text("start");
+  }
+
+  function muteSound() {
+    return gainNode.gain.value = d3.select("input").property("checked") ? 0 : 1;
+  }
+</script>

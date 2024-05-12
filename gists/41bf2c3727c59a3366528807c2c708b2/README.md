@@ -1,0 +1,3 @@
+This is a theremin with a built-in oscilloscope, made using the Web Audio API. This was my first time working with Web Audio and the next thing I want to integrate is using multiple oscillators and filters to manipulate the waveform when moving the mouse horizontally. Until then, vertical movement changes frequency while horizontal movement changes the gain.
+
+** Update: Added the ability to select a waveform from a drop-down at the top left.

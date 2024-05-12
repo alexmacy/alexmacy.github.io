@@ -1,0 +1,1 @@
+The first two drop-downs change the wave combination. The third drop-down adjusts the phase.

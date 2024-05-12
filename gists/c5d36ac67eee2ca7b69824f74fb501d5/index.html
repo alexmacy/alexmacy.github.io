@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    background-color: black;
+    color: rgb(200, 200, 200);
+    margin: 0px;
+  }
+  path {
+    fill: none;
+  }
+  table {
+    margin-left: 10px;
+  }
+</style>
+<script src="//d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+  <svg></svg>
+  <table>
+    <tr>
+      <td>freq. #1: <text id="f1"></text></td>
+      <td>freq. #2: <text id="f2"></text></td>
+      <td>Compound wavelength</td>
+    </tr>
+    <tr>
+      <td><input type="range" min="1" max="100" value="12" oninput="draw()"></td>
+      <td><input type="range" min="1" max="100" value="50" oninput="draw()"></td>
+      <th id="LCM"></th>
+    </tr>
+  </table>
+</body>
+<script>
+const width = Math.max(960, innerWidth),
+    height = Math.max(500, innerHeight - 100);
+
+const svg = d3.select("svg")
+    .attr("width", width)
+    .attr("height", height)
+
+const x = d3.scaleLinear().range([0, width]);
+const angle = d3.scaleLinear().range([0, Math.PI * 2]);
+
+const wave = d3.line()
+    .x(function(d, i) {return x(i)})
+    .y(function(d) {return d * 100})
+
+const radial = d3.radialLine()
+    .angle(function(d, i) {return angle(i)})
+    .radius(function(d) {return d * 150});
+
+const indivWaves = svg.selectAll("path")
+    .data([[],[]])
+  .enter().append("path")
+    .style("stroke", "white")
+    .style("stroke-width", .2)
+    .attr("transform", "translate(0, " + 10 + ")");
+
+const compoundWave = svg.append("path")
+    .style("stroke", "red")
+    .style("stroke-width", 2)
+    .attr("transform", "translate(0, " + 10 + ")");
+
+const LCMWave = svg.append("path")
+    .style("stroke", "green")
+    .style("stroke-width", 2)
+    .attr("transform", "translate(" + width/2 + ", " + (height/2 + 40) + ")");
+
+draw();
+
+function draw() {
+  const fVals = d3.selectAll("input").nodes().map(function(d) {return +d.value});
+  const commonLength = LCM(fVals[0], fVals[1]) * 2 + 1;
+
+  x.domain([0, commonLength]);
+  angle.domain([0, commonLength - 1]);
+
+  const wavesArray = fVals.map(function(d) { return []})
+  const compoundArray = [];
+
+  for (let i=0; i<commonLength; i++) {
+    let combinedVal = 0;
+    for (let n=0; n<wavesArray.length; n++) {
+      const d = fVals[n]
+      const thisVal = d3.easeSinInOut((i % (d*2) - d) / d);
+      combinedVal += thisVal
+      wavesArray[n].push(thisVal)
+    }
+    compoundArray.push(combinedVal/2)
+  }
+
+  indivWaves.data(wavesArray).attr("d", wave)
+  compoundWave.datum(compoundArray).attr("d", wave)
+
+  LCMWave.attr("d", "M" + transitionPoints(commonLength).join("L") + "Z")
+    .datum(compoundArray)
+      .interrupt()
+      .transition()
+      .attr("d", radial)
+
+  d3.select("#f1").html(fVals[0])
+  d3.select("#f2").html(fVals[1])
+  d3.select("#LCM").html(commonLength)
+}
+
+function transitionPoints(newCount) {
+  const totalLength = LCMWave.node().getTotalLength();
+  const newPoints = []
+  
+  for (let i=0; i<newCount; i++) {
+    const thisPoint = LCMWave.node().getPointAtLength((i/newCount)*totalLength) 
+    newPoints.push([thisPoint.x, thisPoint.y])
+  }
+  return newPoints
+}
+
+function LCM(a, b) {
+  return (a/gcd(a, b)*b)
+}
+
+function gcd(a,b) {
+  while (true) {
+    if (b == 0) return a;
+    a %= b;
+    if (a == 0) return b;
+    b %= a;
+  }
+}
+</script>
+</html>

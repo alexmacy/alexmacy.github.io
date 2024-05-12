@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    background-color: black;
+    color: rgb(200, 200, 200);
+    margin: 0px;
+  }
+  table {
+    margin-left: 10px;
+  }
+</style>
+</head>
+<body>
+  <canvas></canvas>
+  <table>
+    <tr id="feedback"></tr>
+    <tr>
+      <td><input type="range" min="10" max="100" oninput="draw()"></td>
+      <td><input type="range" min="10" max="100" oninput="draw()"></td>
+      <td><input type="range" min="10" max="100" oninput="draw()"></td>
+      <td><button onclick="newURL()">Save This Wave</button></td>
+    </tr>
+  </table>
+</body>
+<script>
+const width = innerWidth, height = 600;
+
+const canvas = document.getElementsByTagName('canvas')[0];
+canvas.width = width;
+canvas.height = height;
+
+const canvasCtx = canvas.getContext('2d')
+const inputs = document.getElementsByTagName('input');
+
+const search = window.location.search.split('?')[1];
+let fVals = search ? search.split(',') : [];
+
+for (let i in inputs) {
+  inputs[i].value = fVals[i] ? +fVals[i] : 10 + Math.random() * 50
+}
+
+draw();
+
+function draw() {
+  canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+  canvasCtx.fillRect(0, 0, width, height);
+
+  fVals = [];
+  for (let d of document.getElementsByTagName('input')) fVals.push(+d.value);
+  
+  const LCM = getLCM(getLCM(fVals[0], fVals[1]), fVals[2]) * 2 + 1;
+
+
+  document.getElementById('feedback').innerHTML = '' + 
+    '<td>freq. #1: ' + fVals[0] + '</td>' + 
+    '<td>freq. #2: ' + fVals[1] + '</td>' + 
+    '<td>freq. #3: ' + fVals[2] + '</td>' + 
+    '<td>Compound wavelength: ' + LCM.toLocaleString() + '</td>';  
+  
+  if (LCM > 500000) canvasCtx.lineWidth = .1
+  else if (LCM > 100000) canvasCtx.lineWidth = .2
+  else if (LCM > 10000) canvasCtx.lineWidth = .35
+  else if (LCM > 1000) canvasCtx.lineWidth = .75
+  else canvasCtx.lineWidth = 1
+
+  canvasCtx.strokeStyle = 'rgb(255, 50, 50)';
+  canvasCtx.beginPath();
+
+  for (let i=0; i<LCM; i++) {
+    const thisAngle = i / (LCM-1) * Math.PI * 2
+    let combinedVal = 0;
+
+    for (d of fVals) {
+      combinedVal += (1 - Math.cos(Math.PI * (i % (d * 2) - d) / d)) / 2;
+    }
+
+    const x = width/2 + combinedVal * 100 * Math.cos(thisAngle);
+    const y = height/2 + combinedVal * 100 * Math.sin(thisAngle);
+    i === 0 ?  canvasCtx.moveTo(x, y) : canvasCtx.lineTo(x, y);
+  }
+
+  canvasCtx.stroke();
+}
+
+function newURL() {
+  prompt('URL for these frequencies:', window.location.href.split('?')[0] + '?' + fVals.join(','))
+}
+
+function getLCM(a, b) {
+  return (a / getGCD(a, b) * b)
+}
+
+function getGCD(a,b) {
+  while (true) {
+    if (b == 0) return a;
+    a %= b;
+    if (a == 0) return b;
+    b %= a;
+  }
+}
+</script>
+</html>

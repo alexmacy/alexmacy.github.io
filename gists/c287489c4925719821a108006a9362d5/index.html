@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+  body {
+    background-color: rgb(255, 255, 255);
+    color: rgb(10, 10, 10);
+    margin: 0px;
+  }
+  .container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+  }
+  canvas {
+    position: absolute;
+  }
+  .bottom-row {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+  }
+  .osc {
+    margin: 0px;
+  }
+  .f-text {
+    margin-top: 20px;
+  }
+  .slider {
+    direction: rtl;
+  }
+</style>
+
+<canvas></canvas>
+<div class="container"></div>
+<div class="bottom-row">
+  <div> Compound wavelength: <text id="compound-text"></text></div>
+  <div>
+    <button onclick="newURL()">Save This Wave</button>
+  </div>
+  <div>
+    <button id="sweep" onclick="sweep()">Sweep</button>
+    <input id="compound-wave" type="checkbox" onchange="update()" checked>Show Compound Wave
+  </div>
+  <div>
+    <button onclick="shuffle(10)">Shuffle</button>
+    <input id="indiv-waves" type="checkbox" onchange="update()">Show Individual Waves
+  </div>
+</div>
+<script>
+// using mm instead of cm because that allows for more data points 
+// and smoother drawing for the shorter waves.
+const mmPerSec = 345000;
+const wLRange = [7450, 150];
+const oscCount = 3;
+const oscContainer = document.querySelector('.container');
+let LCM;
+
+
+// setup the visual dimensions
+const oscWidth = oscContainer.offsetWidth + 20,
+      width = innerWidth - oscWidth, 
+      height = innerHeight,
+      radius = Math.min(width, height) / 2;
+
+const canvas = document.querySelector('canvas');
+      canvas.style.left = oscWidth + 'px' ;      
+      canvas.width = width;
+      canvas.height = height;
+
+const canvasCtx = canvas.getContext('2d');
+      canvasCtx.fillStyle = 'rgb(255, 255, 255)';
+
+
+
+// set up the audio context
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+
+
+// create the oscillators and their controls 
+let oscs = [];
+
+for (let i=0; i<oscCount; i++) addNewOsc(null)
+
+function addNewOsc(callback = update) {
+  const newOsc = new Oscillator(oscs.length)
+  oscs.push(newOsc)
+  oscContainer.appendChild(newOsc.div);
+  if (callback != undefined) callback();
+}
+
+getQuery()
+
+
+function Oscillator(num) {
+  // create the main div for this oscillator
+  const thisDiv = document.createElement('div');
+        thisDiv.className = 'osc';
+        thisDiv.addEventListener('mouseover', function() {update(num)});
+        thisDiv.addEventListener('mouseout', function() {update()});
+
+  // add the child elements to be bound to this below
+  // this is done as one string as a means to be more concise
+  thisDiv.innerHTML = '<div class="f-text"></div>' +
+    '<div class="wl-text"></div>' +
+    '<input class="slider" ' +
+            'type="range" ' +
+            'min="' + wLRange[1] + '" ' +
+            'max="' + wLRange[0] + '" ' +
+            'step="10"' +
+            'oninput="update(' + num + ')" ' +
+            'onchange="update()">' +
+    '<div class="a-text"></div>' +
+    '<input class="amplitude" ' +
+            'type="range" ' +
+            'min="0" ' +
+            'max="100" ' +
+            'oninput="update(' + num + ')" ' +
+            'onchange="update()">'; 
+
+  this.div = thisDiv;
+  this.oscNum = num;
+  this.a = thisDiv.querySelector('.amplitude');
+  this.wL = thisDiv.querySelector('.slider');
+  this.aText = thisDiv.querySelector('.a-text');
+  this.fText = thisDiv.querySelector('.f-text');
+  this.wlText = thisDiv.querySelector('.wl-text');
+  
+  const thisGainNode = audioCtx.createGain();
+      thisGainNode.connect(audioCtx.destination);
+      thisGainNode.gain.value = .5;
+  
+  const thisOsc = audioCtx.createOscillator();
+        thisOsc.connect(thisGainNode);
+        thisOsc.frequency.value = 0;
+        thisOsc.type = 'sine';
+        thisOsc.start(0);
+
+  this.osc = thisOsc.frequency;
+  this.gain = thisGainNode.gain;
+
+  return this;
+}
+
+function getQuery() {
+  const search = window.location.search.substring(1),
+        wLVals = getQueryVals('w'),
+        aVals = getQueryVals('a');
+
+  oscs.forEach(function(d, i) {
+    d.wL.value = +wLVals[i] || Math.round(Math.random() * 3300) + 150;
+    d.a.value = aVals[i] != undefined ? +aVals[i] : Math.round(Math.random() * 50) + 50;
+  })
+
+  update();
+
+  function getQueryVals(variable) {
+    if (search === '' || !search.includes(variable)) return []
+    return search.split(variable + '=')[1].split('&')[0].split(',')
+  }
+}
+
+
+function update(num) {
+  const compoundText = document.getElementById('compound-text');
+  const indivWaves = document.getElementById('indiv-waves').checked;
+  const compoundWave = document.getElementById('compound-wave').checked;
+  
+  // find LCM and update oscs array, text fields
+  LCM = 1;
+  for (let osc of oscs) {
+    const wL = +osc.wL.value;
+
+    osc.fText.innerHTML = '<td><i>f</i>: '+ (mmPerSec/wL).toLocaleString() + ' Hz</td>';
+    osc.wlText.innerHTML = '<td>&lambda;: ' + wL/10 + ' cm</td>';
+    osc.aText.innerHTML = '<td>amplitude: ' + osc.a.value + '%</td>';
+    
+    LCM = osc.a.value == 0 ? LCM : getLCM(LCM, wL); 
+
+    osc.osc.value = mmPerSec/osc.wL.value;
+    osc.gain.value = osc.a.value/1000;
+  }
+
+  compoundText.innerHTML = LCM == 2 ? 'N/A' : (LCM/10).toLocaleString() + ' cm';
+
+  LCM *= 2;
+
+  // reset the canvas
+  canvasCtx.fillRect(0, 0, width, height);
+
+  // hover over oscillator div, highlights that wave (testing)
+  if (num != undefined && +oscs[num].a.value != 0) return drawIndivWaves([oscs[num]], true);
+
+  // draw the individual waves if requested
+  if (indivWaves) drawIndivWaves();  
+  if (compoundWave) drawCompoundWave();  
+}
+
+
+function drawIndivWaves(waves, highlighted) {
+  canvasCtx.strokeStyle = 'rgb(150, 150, 250)';
+  canvasCtx.lineWidth = LCM > 1e7 ? .05 : LCM > 1e6 ? .1 : LCM > 1e5 ? .25 : .5;
+  if (highlighted) canvasCtx.lineWidth *= 2;
+
+  waves = waves ? waves : oscs;
+
+  canvasCtx.beginPath();
+
+  for (let d of waves) {
+    const wL = +d.wL.value;
+    const amp = d.a.value/100;
+
+    if (amp == 0) continue;
+
+    canvasCtx.moveTo(width/2, height/2)
+    for (let n=1; n<10000; n++) {
+      const i = n/10000 * LCM;
+      const angle = i / LCM * Math.PI * 2;
+      const val = getVal(i, wL) * amp;
+
+      const x = width/2 + val * radius * Math.cos(angle);
+      const y = height/2 + val * radius * Math.sin(angle);
+      canvasCtx.lineTo(x, y);    
+    }    
+  }
+
+  canvasCtx.stroke();
+}
+
+// draw the compound wave
+function drawCompoundWave() {
+  const active = oscs.filter(function(d) {return d.a.value != 0});
+
+  canvasCtx.strokeStyle = 'rgb(255, 50, 50)';
+  canvasCtx.lineWidth = LCM > 1e7 ? .1 : LCM > 1e6 ? .2 : LCM > 1e5 ? .5 : 1;
+  canvasCtx.beginPath();
+
+  canvasCtx.moveTo(width/2, height/2)
+  for (let i=1; i<50000; i++) {
+    nextPoint(Math.round((i/50000) * LCM), active, LCM);
+  }
+  canvasCtx.stroke();
+
+
+  function nextPoint(i, active, LCM) {
+    const angle = i / LCM * Math.PI * 2;
+    
+    let combinedVal = 0;
+    for (let d of active) {
+      combinedVal += getVal(i, d.wL.value) * d.a.value/100;
+    }
+    combinedVal /= active.length
+
+    const x = width/2 + combinedVal * radius * Math.cos(angle);
+    const y = height/2 + combinedVal * radius * Math.sin(angle);
+    canvasCtx.lineTo(x, y);    
+  }
+}
+
+
+function getVal(i, f) {
+  return 1 - (1 - Math.cos(Math.PI * (i % (f * 2) - f) / f)) / 2;
+}
+
+
+function shuffle(limit, i=0) {
+  if (i < limit) setTimeout(function() { 
+    for (let osc of oscs) {
+      osc.wL.value = +osc.wL.value + Math.round(200 * (Math.random() * 2 - 1));
+      osc.a.value = +osc.a.value + Math.round(10 * (Math.random() * 2 - 1));
+    }
+    update();
+    shuffle(limit, ++i)
+  }, 10);    
+}
+
+function getLCM(a, b) {
+  return (a / getGCD(a, b) * b)
+
+  function getGCD(a,b) {
+    while (true) {
+      if (b == 0) return a;
+      a %= b;
+      if (a == 0) return b;
+      b %= a;
+    }
+  }
+}
+
+function newURL() {
+  let params = oscs.reduce(function(a, b) {
+    return [[...a[0], b.wL.value], [...a[1], b.a.value]];
+  }, [[], []])
+
+  prompt('URL for these frequencies:', window.location.href.split('?')[0] + 
+          '?w=' + params.join('&a='));
+}
+
+
+function sweep() {
+  for (let osc of oscs) {
+    osc.a.value = 0;
+    osc.wL.value = wLRange[0];
+  }
+  oscs[0].wL.value = wLRange[0]/2;
+  oscs[0].a.value = 100;
+  oscs[1].a.value = 100;
+
+  let wL = wLRange[0];
+
+  var t = setInterval(function() {
+    if (wL > wLRange[1]) {
+      wL -= 10;
+      oscs[1].wL.value = wL;
+      update();
+    } else {
+      clearInterval(t)
+    }
+  }, 50)
+}
+</script>
+</html>

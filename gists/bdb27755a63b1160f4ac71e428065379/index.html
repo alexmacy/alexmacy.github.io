@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  body {margin:0;}
+  .controls {list-style: none; z-index: 99;}
+  canvas {position: absolute; left: 300px; top: 0px;}
+  ul {padding: 10px;}
+</style>
+<ul class="controls">
+  <li>
+    <input  type="range" 
+            class="a" 
+            min="0" 
+            max="10" 
+            step=".1" 
+            value=".4">
+    a: <text class="a"></text>
+  </li>
+  <li>
+    <input  type="range" 
+            class="b" 
+            min="0" 
+            max="10" 
+            step=".1" 
+            value=".6">
+    b: <text class="b"></text>
+  </li>
+  <li>
+    Phase: <input  type="checkbox" 
+                    class="checkbox" 
+                    checked>
+  </li>
+</ul>
+
+<canvas></canvas>
+
+<script>
+const width = innerWidth,
+      height = innerHeight;
+
+const scale = Math.min(width, height)/3;
+
+const canvas = document.querySelector('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+const canvasCtx = canvas.getContext('2d');
+      canvasCtx.fillStyle = 'rgb(255, 255, 255)';
+      canvasCtx.strokeStyle = 'rgb(37, 37, 109)';
+      canvasCtx.lineWidth = .01;
+
+let offset = 0;
+
+draw();
+
+function draw() {
+  const [a, b, rotate] = getVals();
+  if (rotate) offset += .005;
+
+  document.querySelector("text.a").innerHTML = a;
+  document.querySelector("text.b").innerHTML = b;
+
+  canvasCtx.fillRect(0, 0, width, height);
+  canvasCtx.beginPath();
+
+  let i = 10000;
+
+  canvasCtx.moveTo(...calcPoint(a, b, i--));
+  while (i--) canvasCtx.lineTo(...calcPoint(a, b, i));
+  canvasCtx.stroke();
+
+  window.requestAnimationFrame(draw);
+}
+
+function getVals() {
+  const a = +document.querySelector("input.a").value,
+        b = +document.querySelector("input.b").value,
+        rotate = document.querySelector(".checkbox").checked;  
+  return [a, b, rotate];  
+}
+
+function calcPoint(a, b, i) {
+  const x = Math.sin(a*i + offset) * scale + width/3;
+  const y = Math.sin(b*i) * scale + height/2;
+  return [x, y];
+}
+</script>
